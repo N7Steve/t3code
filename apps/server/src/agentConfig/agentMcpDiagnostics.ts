@@ -65,7 +65,7 @@ const stringEnv = (dialect: AgentMcpDialect, raw: RawEntry): Record<string, stri
 };
 
 /** Hashes and version numbers collapse, so `22cfb1d3…` matches `34ab3e13…` and `v20.1` matches `v22.3`. */
-export const versionShape = (name: string) =>
+const versionShape = (name: string) =>
   name
     .toLowerCase()
     .replace(/[0-9a-f]{6,}/g, "#")
