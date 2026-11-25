@@ -149,6 +149,30 @@ function setup() {
 }
 
 describe("AddProviderInstanceDialog environment routing", () => {
+  it("offers sign-in for the Claude account just created on the selected environment", async () => {
+    setup();
+    await using _screen = await render(dialog());
+    await act(async () => radio("Claude")!.click());
+    await click("Next");
+    await type("#add-provider-label", "Claude Mery");
+    await click("Next");
+    await type("#add-provider-claudeAgent-homePath", "~/.claude-mery");
+    await click("Continue to sign-in");
+
+    expect(settingsHooks.mutate).toHaveBeenCalledWith({
+      operation: "create",
+      instanceId: "claudeAgent_claude_mery",
+      instance: {
+        driver: "claudeAgent",
+        enabled: true,
+        displayName: "Claude Mery",
+        config: { homePath: "~/.claude-mery" },
+      },
+    });
+    expect(signInStep()?.textContent).toContain("remote-device/claudeAgent_claude_mery");
+    expect(actions.onOpenChange).not.toHaveBeenCalled();
+  });
+
   it("chooses an unused identity for another account without replacing configured instances", async () => {
     setup();
     settingsHooks.read.mockReturnValue({

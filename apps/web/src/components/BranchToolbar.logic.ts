@@ -68,34 +68,6 @@ export function shouldShowEnvironmentIndicator(input: {
   return input.activeEnvironment !== null && !input.activeEnvironment.isPrimary;
 }
 
-export function shouldShowComposerContextStrip(input: {
-  isDraftHeroState: boolean;
-  persistInActiveThreads: boolean;
-  hasActiveProject: boolean;
-  isGitRepo: boolean;
-  showEnvironmentIndicator: boolean;
-}): boolean {
-  // A new thread always shows the strip, since it names the permissions the first send uses.
-  return (
-    input.hasActiveProject &&
-    (input.isDraftHeroState ||
-      (input.persistInActiveThreads && (input.isGitRepo || input.showEnvironmentIndicator)))
-  );
-}
-
-// Hysteresis prevents labels and icons from flapping at the width boundary.
-const CONTEXT_STRIP_COMPACT_EXPAND_HYSTERESIS_PX = 16;
-
-export function resolveContextStripLabelsCompact(input: {
-  compact: boolean;
-  neededWidth: number;
-  availableWidth: number;
-}): boolean {
-  return input.compact
-    ? input.neededWidth > input.availableWidth - CONTEXT_STRIP_COMPACT_EXPAND_HYSTERESIS_PX
-    : input.neededWidth > input.availableWidth;
-}
-
 export function resolveEnvModeLabel(mode: EnvMode, resolve: MessageResolver = m): string {
   return mode === "worktree" ? resolve(msg("New worktree")) : resolve(msg("Current checkout"));
 }

@@ -126,6 +126,16 @@ returns to the remembered selection.
 
 Leaving reasoning level or service tier unset uses the provider's own configuration.
 
+On web and desktop, choose a provider account before choosing a model. The model
+menu shows the models available to that account. Switching accounts keeps the
+current model when the destination account offers it. Use the shield alongside
+the attachment controls to change the agent's permissions.
+
+The row below the composer shows the selected account's remaining limits and reset
+times. Select a limit to open the usage panel. In a Git project, use the folder
+icon to open the checkout, worktree, and branch controls. The context indicator
+opens the token count, capacity, and breakdown when the provider reports them.
+
 ## Quote an assistant response
 
 On web and desktop, select text within one assistant response and choose
@@ -284,7 +294,8 @@ composer when it is empty, and is discarded otherwise.
 
 Type `/` for commands or `$` to add a skill from the selected environment and
 provider. On mobile, both are also available before starting a thread on
-**New task**.
+**New task**. On web and desktop, the skills button next to the attach button lists the same
+skills, with the project's own skills apart from global ones.
 
 The slash menu also includes skills unless you turn off **Settings → Chat →
 Show skills in slash menu**, under Advanced. Only skills enabled for the provider are listed.

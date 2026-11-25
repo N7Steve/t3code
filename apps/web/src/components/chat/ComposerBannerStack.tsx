@@ -17,6 +17,7 @@ export interface ComposerBannerStackItem {
   readonly id: string;
   readonly variant: ComposerBannerVariant;
   readonly group?: ComposerBannerGroup;
+  readonly compact?: boolean;
   readonly icon: ReactNode;
   readonly title: ReactNode;
   readonly description?: ReactNode;
@@ -46,18 +47,25 @@ export function ComposerBannerStack({
   const ordered = GROUPS.flatMap((group) =>
     items.filter((item) => (item.group ?? "attention") === group),
   );
-  if (detached) {
-    return ordered.map((item) => (
-      <div key={item.id} data-composer-banner-stack="true" className={FADE_IN}>
+  return ordered.map((item) =>
+    detached || item.compact ? (
+      <div
+        key={item.id}
+        data-composer-banner-stack="true"
+        className={item.compact ? `${FADE_IN} w-full max-w-xs self-start` : FADE_IN}
+      >
         <NoticeCard item={item} detached />
       </div>
-    ));
-  }
-  return ordered.map((item) => (
-    <ComposerBanner.Attachment key={item.id} data-composer-banner-stack="true" className={FADE_IN}>
-      <NoticeCard item={item} />
-    </ComposerBanner.Attachment>
-  ));
+    ) : (
+      <ComposerBanner.Attachment
+        key={item.id}
+        data-composer-banner-stack="true"
+        className={FADE_IN}
+      >
+        <NoticeCard item={item} />
+      </ComposerBanner.Attachment>
+    ),
+  );
 }
 
 const SUBPIXEL_ROUNDING = 0.001;

@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vite-plus/test";
 import indexHtml from "../index.html?raw";
 import {
   CUSTOM_THEMES_STORAGE_KEY,
+  DEFAULT_THEME_PREFERENCE,
   ENVIRONMENT_THEMES_STORAGE_KEY,
   getDefaultThemeColors,
   getThemeColorsForMode,
@@ -13,6 +14,7 @@ import {
   T3_CHAT_THEME,
   EMBER_THEME,
   GROVE_THEME,
+  ILOS_THEME,
   IRIS_THEME,
   OCEAN_THEME,
   THEME_APPEARANCE_MODE_STORAGE_KEY,
@@ -112,7 +114,7 @@ function runtimeResolvedAppearance(
   invalidateCustomThemes();
   try {
     const raw = storage[THEME_STORAGE_KEY] ?? null;
-    const theme = raw !== null && isKnownThemePreference(raw) ? raw : "system";
+    const theme = raw !== null && isKnownThemePreference(raw) ? raw : DEFAULT_THEME_PREFERENCE;
     const followRaw = storage[THEME_FOLLOW_SYSTEM_STORAGE_KEY] ?? null;
     const appearanceRaw = storage[THEME_APPEARANCE_MODE_STORAGE_KEY] ?? null;
     const appearanceMode =
@@ -122,7 +124,7 @@ function runtimeResolvedAppearance(
           ? "system"
           : followRaw === "false"
             ? null
-            : theme === "system"
+            : theme === "system" || theme === DEFAULT_THEME_PREFERENCE
               ? "system"
               : null;
     const followSystem = appearanceMode === "system";
@@ -154,6 +156,12 @@ describe("index.html boot script", () => {
     prefersDark: boolean;
   }> = [
     { name: "no stored preference on a dark OS", storage: {}, prefersDark: true },
+    { name: "no stored preference on a light OS", storage: {}, prefersDark: false },
+    {
+      name: "follow-system off keeps Ilos on its dark base on a light OS",
+      storage: { [THEME_STORAGE_KEY]: "ilos", [THEME_FOLLOW_SYSTEM_STORAGE_KEY]: "false" },
+      prefersDark: false,
+    },
     {
       name: "T3 Chat follows a dark OS",
       storage: { [THEME_STORAGE_KEY]: "t3-chat", [THEME_FOLLOW_SYSTEM_STORAGE_KEY]: "true" },
@@ -225,7 +233,7 @@ describe("index.html boot script", () => {
       prefersDark: true,
     },
     {
-      name: "a removed custom theme falls back to system",
+      name: "a removed custom theme falls back to the default theme",
       storage: { [THEME_STORAGE_KEY]: "gone-theme" },
       prefersDark: true,
     },
@@ -310,8 +318,14 @@ describe("index.html boot script", () => {
   });
 
   it("keeps every built-in boot splash in sync with the real palettes", () => {
-    for (const theme of [T3_CHAT_THEME, GROVE_THEME, OCEAN_THEME, EMBER_THEME, IRIS_THEME]) {
-      expect(theme.appearance).toBe("light");
+    for (const theme of [
+      ILOS_THEME,
+      T3_CHAT_THEME,
+      GROVE_THEME,
+      OCEAN_THEME,
+      EMBER_THEME,
+      IRIS_THEME,
+    ]) {
       for (const mode of ["light", "dark"] as const) {
         const colors = getThemeColorsForMode(theme, mode);
         expect(colors).not.toBeNull();
@@ -395,6 +409,16 @@ describe("index.html boot script", () => {
     expect(boot.bootVariables["--boot-accent"]).toBe(getDefaultThemeColors("dark").accent);
     expect(boot.backgroundColor).toBe(DEFAULT_DARK_CHROME);
     expect(boot.metaContent).toBe(DEFAULT_DARK_CHROME);
+  });
+
+  it("paints the default theme in the OS appearance before anything is stored", () => {
+    for (const prefersDark of [false, true]) {
+      const boot = runBootScript({ storage: {}, prefersDark });
+      const colors = getThemeColorsForMode(ILOS_THEME, prefersDark ? "dark" : "light")!;
+      expect(boot.themeId).toBe(DEFAULT_THEME_PREFERENCE);
+      expect(boot.isDark).toBe(prefersDark);
+      expect(boot.bootVariables["--boot-background"]).toBe(colors.canvas);
+    }
   });
 
   it("follows the OS appearance when storage is unavailable", () => {

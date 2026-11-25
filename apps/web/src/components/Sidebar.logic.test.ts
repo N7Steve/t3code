@@ -1603,7 +1603,7 @@ describe("sidebarFolderExpansionKeys", () => {
 });
 
 describe("groupSidebarThreadsByProject", () => {
-  it("puts each thread in its project's folder and drops empty projects unless kept", () => {
+  it("puts each thread in its project's folder and keeps every open project", () => {
     const remoteEnvironmentId = EnvironmentId.make("environment-remote");
     const t3code = ProjectId.make("t3code");
     const t3codeRemote = ProjectId.make("t3code-remote");
@@ -1613,47 +1613,39 @@ describe("groupSidebarThreadsByProject", () => {
       environmentId,
       projectId,
     });
+    const legacy = ProjectId.make("legacy");
+    const group = (projectKey: string, archived: boolean, projectIds: ProjectId[]) => ({
+      projectKey,
+      archived,
+      memberProjectRefs: projectIds.map((projectId) => ({
+        environmentId: projectId === t3codeRemote ? remoteEnvironmentId : localEnvironmentId,
+        projectId,
+      })),
+    });
     const groups = [
-      {
-        projectKey: "t3code",
-        memberProjectRefs: [
-          { environmentId: localEnvironmentId, projectId: t3code },
-          { environmentId: remoteEnvironmentId, projectId: t3codeRemote },
-        ],
-      },
-      {
-        projectKey: "fleet",
-        memberProjectRefs: [{ environmentId: localEnvironmentId, projectId: fleet }],
-      },
-      {
-        projectKey: "notes",
-        memberProjectRefs: [
-          { environmentId: localEnvironmentId, projectId: ProjectId.make("notes") },
-        ],
-      },
+      group("t3code", false, [t3code, t3codeRemote]),
+      group("fleet", false, [fleet]),
+      group("legacy", true, [legacy]),
+      group("old", true, [ProjectId.make("old")]),
     ];
 
     const threads = [
       thread("a", localEnvironmentId, t3code),
       thread("orphan", localEnvironmentId, ProjectId.make("deleted")),
       thread("b", remoteEnvironmentId, t3codeRemote),
+      thread("c", localEnvironmentId, legacy),
     ];
-    const summarize = (keepEmpty: (group: (typeof groups)[number]) => boolean) =>
-      groupSidebarThreadsByProject(groups, threads, keepEmpty).map((folder) => ({
+
+    // An empty archived project drops out; one with threads keeps its folder.
+    expect(
+      groupSidebarThreadsByProject(groups, threads).map((folder) => ({
         projectKey: folder.group.projectKey,
         threads: folder.threads.map((entry) => entry.id),
-      }));
-
-    expect(summarize(() => true)).toEqual([
+      })),
+    ).toEqual([
       { projectKey: "t3code", threads: ["a", "b"] },
       { projectKey: "fleet", threads: [] },
-      { projectKey: "notes", threads: [] },
-    ]);
-    expect(summarize(() => false)).toEqual([{ projectKey: "t3code", threads: ["a", "b"] }]);
-    // A pinned project keeps its empty folder while other empty projects drop out.
-    expect(summarize((group) => group.projectKey === "fleet")).toEqual([
-      { projectKey: "t3code", threads: ["a", "b"] },
-      { projectKey: "fleet", threads: [] },
+      { projectKey: "legacy", threads: ["c"] },
     ]);
   });
 });

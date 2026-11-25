@@ -145,6 +145,8 @@ export const RPC_REQUIRED_SCOPES = {
   [WS_METHODS.issueTrackersList]: AuthOrchestrationReadScope,
   [WS_METHODS.issueTrackersConnect]: AuthSettingsWriteScope,
   [WS_METHODS.issueTrackersBindProject]: AuthSettingsWriteScope,
+  // MCP entries carry their servers' tokens in env and headers, so reading them needs manage too.
+  [WS_METHODS.agentConfigList]: AuthProvidersManageScope,
   [WS_METHODS.pullRequestsPreview]: AuthOrchestrationReadScope,
   [WS_METHODS.pullRequestsChecks]: AuthOrchestrationReadScope,
   [WS_METHODS.pullRequestsActivity]: AuthOrchestrationReadScope,

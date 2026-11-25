@@ -6,6 +6,7 @@ import * as SecureRandom from "effect/crypto/SecureRandom";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
 import * as FileSystem from "effect/FileSystem";
+import * as Option from "effect/Option";
 import * as Path from "effect/Path";
 import * as Queue from "effect/Queue";
 import * as Ref from "effect/Ref";
@@ -62,6 +63,8 @@ import {
   resolveClaudeHomePath,
 } from "./ClaudeHome.ts";
 import * as HostProcess from "@t3tools/shared/HostProcess";
+import * as PtyAdapter from "@t3tools/shared/PtyAdapter";
+import { makeClaudeAuth } from "./ClaudeAuth.ts";
 import { makeClaudeMaintenanceResolution } from "./ClaudeMaintenance.ts";
 const decodeClaudeSettings = Schema.decodeSync(ClaudeSettings);
 
@@ -151,6 +154,20 @@ export const ClaudeDriver: ProviderDriver<ClaudeSettings, ClaudeDriverEnv, Path.
       accentColor,
       continuationGroupKey,
     });
+    const pty = yield* Effect.serviceOption(PtyAdapter.PtyAdapter);
+    const stampSnapshot = (provider: Parameters<typeof stampIdentity>[0]) =>
+      stampIdentity({
+        ...provider,
+        setup: {
+          canInstall: false,
+          canAuthenticate:
+            enabled &&
+            Option.isSome(pty) &&
+            provider.auth.type !== "apiKey" &&
+            provider.auth.type !== "bedrock" &&
+            provider.auth.type !== "customEndpoint",
+        },
+      });
 
     const scopedLimitNames = yield* makeClaudeScopedLimitNames;
     // The SDK's user source is the host's home, not a custom one; same rule as the adapter.
@@ -294,7 +311,7 @@ export const ClaudeDriver: ProviderDriver<ClaudeSettings, ClaudeDriverEnv, Path.
               ? Cache.invalidateAll(capabilitiesProbeCache)
               : Effect.void,
           ),
-          Effect.map(stampIdentity),
+          Effect.map(stampSnapshot),
         ),
       ),
       // Disabled, failed version checks and interruption never reach the probe.
@@ -313,7 +330,7 @@ export const ClaudeDriver: ProviderDriver<ClaudeSettings, ClaudeDriverEnv, Path.
       initialSnapshot: (settings) =>
         modelCatalog.pipe(
           Effect.flatMap((catalog) => makePendingClaudeProvider(settings.provider, catalog)),
-          Effect.map(stampIdentity),
+          Effect.map(stampSnapshot),
         ),
       checkProvider,
       invalidateUsageCache: Cache.invalidateAll(capabilitiesProbeCache),
@@ -339,6 +356,21 @@ export const ClaudeDriver: ProviderDriver<ClaudeSettings, ClaudeDriverEnv, Path.
           }),
       ),
     );
+
+    const auth =
+      enabled && Option.isSome(pty)
+        ? yield* makeClaudeAuth({
+            instanceId,
+            credentialKey: continuationGroupKey,
+            settings: effectiveConfig,
+            cwd: stateDir,
+            environment: processEnv,
+            adapter: pty.value,
+            refresh: Cache.invalidateAll(capabilitiesProbeCache).pipe(
+              Effect.andThen(snapshot.refresh),
+            ),
+          })
+        : undefined;
 
     // Same rules as Codex: serialised on the config directory that holds the
     // login, one request id kept until Claude answers (a cooldown or rate
@@ -418,6 +450,7 @@ export const ClaudeDriver: ProviderDriver<ClaudeSettings, ClaudeDriverEnv, Path.
       accentColor,
       enabled,
       snapshot,
+      ...(auth ? { auth } : {}),
       invalidateCaches: Cache.invalidateAll(capabilitiesProbeCache),
       workspaceRescans: Stream.fromQueue(workspaceRescans),
       snapshotForCwd: (cwd: string) =>

@@ -92,6 +92,11 @@ export function useComposerAttachmentIntake(input: {
     selection?: { start: number; end: number },
     pendingInsertion?: ComposerAttachmentInsertion,
   ) => boolean;
+  /**
+   * Files over the upload limit can still reach an agent on this computer by path. Returns
+   * false when they cannot be referenced, so the caller reports the size error instead.
+   */
+  readonly referenceOversizedFiles: (files: File[], limitBytes: number) => boolean;
 }) {
   const {
     activeThreadId,
@@ -116,6 +121,7 @@ export function useComposerAttachmentIntake(input: {
     addComposerFilesToDraft,
     removeComposerImageFromDraft,
     insertAttachmentReferences,
+    referenceOversizedFiles,
   } = input;
   const pastedTextFileNamesRef = useRef<{ targetKey: string; names: Set<string> }>({
     targetKey: "",
@@ -165,6 +171,7 @@ export function useComposerAttachmentIntake(input: {
     const replacedReattachMarkerIds = new Set<string>();
     const acceptedImages: File[] = [];
     const acceptedFiles: ComposerFileAttachment[] = [];
+    const oversizedFiles: File[] = [];
     let error: string | null = null;
     for (const file of files) {
       const attachmentKind = classifyComposerAttachmentFile(file);
@@ -214,7 +221,7 @@ export function useComposerAttachmentIntake(input: {
           continue;
         }
         if (file.size > fileStagingLimit) {
-          error = fileAttachmentTooLargeMessage(file.name, fileStagingLimit, m);
+          oversizedFiles.push(file);
           continue;
         }
         const attachmentFile =
@@ -234,6 +241,14 @@ export function useComposerAttachmentIntake(input: {
       if (!matchingReattachMarker) {
         reservedCount += 1;
       }
+    }
+    const lastOversizedFile = oversizedFiles.at(-1);
+    if (
+      lastOversizedFile &&
+      fileStagingLimit !== null &&
+      !referenceOversizedFiles(oversizedFiles, fileStagingLimit)
+    ) {
+      error = fileAttachmentTooLargeMessage(lastOversizedFile.name, fileStagingLimit, m);
     }
     setThreadError(threadId, error);
     let insertedAny = false;

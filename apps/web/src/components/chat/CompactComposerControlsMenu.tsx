@@ -1,56 +1,60 @@
-import type { RuntimeMode } from "@t3tools/contracts";
 import { useGT } from "gt-react";
-import { memo, useRef } from "react";
+import type { ReactNode } from "react";
 import { EllipsisIcon } from "lucide-react";
-import { Menu, MenuPopup, MenuTrigger } from "../ui/menu";
+import {
+  Menu,
+  MenuPopup,
+  MenuSeparator,
+  MenuSub,
+  MenuSubPopup,
+  MenuSubTrigger,
+  MenuTrigger,
+} from "../ui/menu";
 import { ComposerControl, ComposerControlIcon } from "./ComposerControl";
-import { focusRequestedPermission, useComposerMenuProps } from "./composerEventScope";
+import { useComposerMenuProps } from "./composerEventScope";
 import { useComposerMenuState } from "./useComposerMenuState";
-import { ComposerPermissionsSection, type RuntimeModeOption } from "./ComposerFooterControls";
 
-export const CompactComposerControlsMenu = memo(function CompactComposerControlsMenu(props: {
-  runtimeMode: RuntimeMode;
-  runtimeModeOptions: ReadonlyArray<RuntimeModeOption>;
-  showPermissions: boolean;
+export function CompactComposerControlsMenu(props: {
+  account?: ReactNode;
+  reasoning?: { label: string; content: ReactNode } | undefined;
   size?: "sm" | "xs";
   /** Close the portaled popup when its trigger hides. */
   hidden?: boolean;
-  onRuntimeModeChange: (mode: RuntimeMode) => void;
 }) {
   const gt = useGT();
   const composerFloatingLayerProps = useComposerMenuProps();
   const size = props.size ?? "sm";
   const [open, setOpen] = useComposerMenuState(props.hidden);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-
+  const sections = [
+    props.reasoning ? (
+      <MenuSub key="reasoning">
+        <MenuSubTrigger>{props.reasoning.label}</MenuSubTrigger>
+        <MenuSubPopup {...composerFloatingLayerProps}>{props.reasoning.content}</MenuSubPopup>
+      </MenuSub>
+    ) : null,
+    props.account ? <div key="account">{props.account}</div> : null,
+  ].filter((section) => section !== null);
   return (
-    <Menu
-      open={open}
-      onOpenChange={setOpen}
-      onOpenChangeComplete={(isOpen) => focusRequestedPermission(isOpen, triggerRef.current)}
-    >
+    <Menu open={open} onOpenChange={setOpen}>
       <MenuTrigger
         render={
           <ComposerControl
-            ref={triggerRef}
             size={size}
             className="shrink-0"
             aria-label={gt("More composer controls")}
-            data-composer-shortcut={props.showPermissions ? "composer.mode" : undefined}
+            data-composer-shortcut={props.reasoning ? "composer.effort" : undefined}
           />
         }
       >
         <ComposerControlIcon icon={EllipsisIcon} size={size} />
       </MenuTrigger>
-      <MenuPopup align="start" {...composerFloatingLayerProps}>
-        {props.showPermissions ? (
-          <ComposerPermissionsSection
-            runtimeMode={props.runtimeMode}
-            runtimeModeOptions={props.runtimeModeOptions}
-            onRuntimeModeChange={props.onRuntimeModeChange}
-          />
-        ) : null}
+      <MenuPopup align="end" {...composerFloatingLayerProps}>
+        {sections.flatMap((section) =>
+          section === sections[0]
+            ? [section]
+            : [<MenuSeparator key={`separator-${section.key}`} />, section],
+        )}
       </MenuPopup>
     </Menu>
   );
-});
+}

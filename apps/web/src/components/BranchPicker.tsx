@@ -239,7 +239,7 @@ export function BranchPickerRefItem({
       onClick={onClick}
       onContextMenu={onContextMenu}
     >
-      <div className="flex w-full min-w-0 items-center justify-between gap-2">
+      <div className="flex w-full min-w-0 items-center justify-between gap-2 font-ident">
         <MiddleTruncate value={itemValue} className="flex-1" />
         {badge && <span className="shrink-0 text-3xs text-muted-foreground/45">{badge}</span>}
       </div>

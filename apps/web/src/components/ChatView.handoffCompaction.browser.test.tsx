@@ -11,6 +11,8 @@ import * as DateTime from "effect/DateTime";
 import { expect, it, vi } from "vite-plus/test";
 import { page, userEvent } from "vite-plus/test/browser";
 
+import "~/index.css";
+
 import { AppRoot } from "~/AppRoot";
 // The route loads ChatView lazily, and its first transform (React Compiler over ~4k lines)
 // takes 6-11s; importing it here keeps that out of the test's timeout.
@@ -68,7 +70,13 @@ function coldClaudeThread(threadId = "thread-claude") {
     handoffIds: [],
     forkedFrom: null,
     pendingBackgroundTasks: [],
-    contextUsage: { usedTokens: 250_000, maxTokens: 1_000_000 },
+    contextUsage: {
+      usedTokens: 250_000,
+      maxTokens: 1_000_000,
+      inputTokens: 240_000,
+      cachedInputTokens: 100_000,
+      outputTokens: 10_000,
+    },
     nativeMetadata: null,
     goal: null,
     createdAt: at,
@@ -78,10 +86,32 @@ function coldClaudeThread(threadId = "thread-claude") {
 }
 
 it("sends a Codex follow-up on a cold Claude thread without compacting first", async () => {
+  const viewport = { width: window.innerWidth, height: window.innerHeight };
+  await page.viewport(1280, 800);
+  await using _viewport = {
+    [Symbol.asyncDispose]: () => page.viewport(viewport.width, viewport.height),
+  };
   const thread = coldClaudeThread();
+  const workAccount = ProviderInstanceId.make("codex_work");
+  const limits = (usedPercent: number, resetsAt: string) => ({
+    checkedAt: CODEX_PROVIDER.checkedAt,
+    windows: [{ id: "session", kind: "session", label: "Session", usedPercent, resetsAt }],
+  });
   using _environment = installFakeEnvironment([thread], {
     acceptCommands: true,
-    providers: [CLAUDE_PROVIDER, CODEX_PROVIDER],
+    providerInstances: {
+      [workAccount]: { driver: ProviderDriverKind.make("codex"), config: {} },
+    },
+    providers: [
+      { ...CLAUDE_PROVIDER, usageLimits: limits(15, "2097-01-01T00:00:00.000Z") },
+      { ...CODEX_PROVIDER, usageLimits: limits(25, "2098-01-01T00:00:00.000Z") },
+      {
+        ...CODEX_PROVIDER,
+        instanceId: workAccount,
+        displayName: "Work",
+        usageLimits: limits(35, "2099-01-01T00:00:00.000Z"),
+      },
+    ],
   });
   __setClientSettingsForTests({
     ...DEFAULT_CLIENT_SETTINGS,
@@ -99,14 +129,40 @@ it("sends a Codex follow-up on a cold Claude thread without compacting first", a
   const compactAndSend = page.getByRole("button", { name: "Compact and send" });
   await expect.element(compactAndSend).toBeVisible();
 
-  await page.getByRole("button", { name: "Claude Opus 4.6", exact: true }).click();
-  // The picker lists only the active provider's models until you search.
-  await userEvent.type(page.getByPlaceholder("Search models..."), "GPT-5.4");
-  await page.getByRole("option", { name: "GPT-5.4", exact: false }).click();
+  await page.getByRole("button", { name: "Context: 25% used" }).click();
+  await expect.element(page.getByText("250,000 of 1,000,000 tokens")).toBeVisible();
+  await expect.element(page.getByText("Cached input", { exact: true })).toBeVisible();
+  await expect.element(page.getByText("100,000", { exact: true })).toBeVisible();
+  await userEvent.keyboard("{Escape}");
+
+  const quota = (remaining: number) =>
+    page.getByRole("button", {
+      name: new RegExp(`Usage limits: Session ${remaining}%, resets in`, "i"),
+    });
+  const reset = (remaining: number) =>
+    quota(remaining).element().getAttribute("aria-label")?.split(", ")[1];
+  await expect.element(quota(85)).toBeVisible();
+  const claudeReset = reset(85);
+  await quota(85).click();
+  const limitsPanel = page.getByRole("button", { name: "Dismiss usage limits" });
+  await expect.element(limitsPanel).toBeVisible();
+
+  await page.getByRole("button", { name: /^Account: Claude/ }).click();
+  await page.getByRole("menuitemradio", { name: "Codex", exact: true }).click();
   await expect.element(page.getByRole("button", { name: "GPT-5.4", exact: true })).toBeVisible();
   await expect.element(compactAndSend).not.toBeInTheDocument();
-  // Picking a model leaves the composer's settings menu open.
-  await userEvent.keyboard("{Escape}");
+  await expect.element(quota(75)).toBeVisible();
+  const codexReset = reset(75);
+  expect(codexReset).not.toBe(claudeReset);
+  await expect.element(limitsPanel).toBeVisible();
+
+  await page.getByRole("button", { name: "Account: Codex", exact: true }).click();
+  await page.getByRole("menuitemradio", { name: "Work", exact: true }).click();
+  await expect.element(quota(65)).toBeVisible();
+  expect(reset(65)).not.toBe(codexReset);
+  await expect.element(limitsPanel).toBeVisible();
+  const accountSections = limitsPanel.element().closest("[data-composer-banner-surface]");
+  expect(accountSections?.textContent).toMatch(/Codex · Work.*65% left.*75% left/);
 
   const editor = page.getByTestId("composer-editor");
   await userEvent.click(editor);
@@ -119,7 +175,7 @@ it("sends a Codex follow-up on a cold Claude thread without compacting first", a
         ? [{ text: command.text, instanceId: command.modelSelection?.instanceId }]
         : [],
     );
-  const sent = { text: "keep going", instanceId: CODEX_PROVIDER.instanceId };
+  const sent = { text: "keep going", instanceId: workAccount };
   await vi.waitFor(() => expect(messages()).toContainEqual(sent));
   expect(messages()).toEqual([sent]);
 });

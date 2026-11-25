@@ -9,28 +9,23 @@ shared provider settings.
 Use a separate Claude config directory for each account. This also works for named
 presets that need different Claude settings or a router connection.
 
-Keep your existing account in the default directory. On the environment's machine,
-create the second login:
-
-```bash
-mkdir -p ~/.claude_personal
-CLAUDE_CONFIG_DIR=~/.claude_personal claude auth login
-```
-
-Add another Claude instance in **Settings > Providers**:
+Keep your existing account in the default directory. Add another Claude instance in
+**Settings > Providers**:
 
 | Instance        | Binary path | CLAUDE_CONFIG_DIR path |
 | --------------- | ----------- | ---------------------- |
 | Claude Work     | `claude`    | Leave empty            |
 | Claude Personal | `claude`    | `~/.claude_personal`   |
 
-On mobile, tap **Add Claude account** in **Settings > Providers** and enter a name and the
-config folder. The login itself still happens on the environment's machine.
+Choose **Sign in** for the new instance and follow the prompts in its terminal.
+T3 Code starts Claude on the environment's machine with that instance's config directory.
+On mobile, tap **Add Claude account**, enter a name and config folder, then choose
+**Sign in** on the new account.
 
 An empty config-directory setting uses Claude Code's normal configuration. The
 custom setting changes `CLAUDE_CONFIG_DIR`, leaving `HOME` and the system keychain
-location intact. Use the same variable for the login command. Setting `HOME`
-instead can put credentials where this provider will not find them.
+location intact. If you sign in manually on the environment's machine, set
+`CLAUDE_CONFIG_DIR` to that same folder when you run `claude auth login`.
 
 Check the account reported in provider settings after signing in. Existing
 threads can switch only between Claude instances with the same config directory.

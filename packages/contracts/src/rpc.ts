@@ -438,6 +438,18 @@ import {
   SourceControlSignInResult,
 } from "./sourceControl.ts";
 import { VcsError } from "./vcs.ts";
+import {
+  AgentConfigError,
+  AgentConfigRemoveInput,
+  AgentConfigRepairMcpServerInput,
+  AgentConfigSetEnabledInput,
+  AgentConfigSnapshot,
+  AgentConfigUpsertMcpServerInput,
+  AgentConfigSyncMcpServerInput,
+  AgentConfigImportPluginInput,
+  AgentConfigSetPluginEnabledInput,
+  AgentConfigRemovePluginInput,
+} from "./agentConfig.ts";
 import { Project, ProjectMutation, ProjectMutationError } from "./project.ts";
 
 export const WS_METHODS = {
@@ -643,6 +655,18 @@ export const WS_METHODS = {
   issueTrackersList: "issueTrackers.list",
   issueTrackersConnect: "issueTrackers.connect",
   issueTrackersBindProject: "issueTrackers.bindProject",
+
+  agentConfigList: "agentConfig.list",
+  agentConfigUpsertMcpServer: "agentConfig.upsertMcpServer",
+  agentConfigSetMcpServerEnabled: "agentConfig.setMcpServerEnabled",
+  agentConfigRemoveMcpServer: "agentConfig.removeMcpServer",
+  agentConfigRepairMcpServer: "agentConfig.repairMcpServer",
+  agentConfigSetSkillEnabled: "agentConfig.setSkillEnabled",
+  agentConfigRemoveSkill: "agentConfig.removeSkill",
+  agentConfigSyncMcpServer: "agentConfig.syncMcpServer",
+  agentConfigImportPlugin: "agentConfig.importPlugin",
+  agentConfigSetPluginEnabled: "agentConfig.setPluginEnabled",
+  agentConfigRemovePlugin: "agentConfig.removePlugin",
 
   sourceControlLookupRepository: "sourceControl.lookupRepository",
   sourceControlCloneRepository: "sourceControl.cloneRepository",
@@ -1425,6 +1449,75 @@ const WsIssueTrackersBindProjectRpc = Rpc.make(WS_METHODS.issueTrackersBindProje
   payload: IssueTrackerBindProjectInput,
   success: Schema.Void,
   error: IssueTrackerRpcError,
+});
+
+const AgentConfigRpcError = Schema.Union([AgentConfigError, EnvironmentAuthorizationError]);
+
+/** MCP servers and skills in the provider CLIs' config files on this environment's machine. */
+const WsAgentConfigListRpc = Rpc.make(WS_METHODS.agentConfigList, {
+  payload: Schema.Struct({}),
+  success: AgentConfigSnapshot,
+  error: AgentConfigRpcError,
+});
+
+const WsAgentConfigUpsertMcpServerRpc = Rpc.make(WS_METHODS.agentConfigUpsertMcpServer, {
+  payload: AgentConfigUpsertMcpServerInput,
+  success: Schema.Void,
+  error: AgentConfigRpcError,
+});
+
+const WsAgentConfigSetMcpServerEnabledRpc = Rpc.make(WS_METHODS.agentConfigSetMcpServerEnabled, {
+  payload: AgentConfigSetEnabledInput,
+  success: Schema.Void,
+  error: AgentConfigRpcError,
+});
+
+const WsAgentConfigRemoveMcpServerRpc = Rpc.make(WS_METHODS.agentConfigRemoveMcpServer, {
+  payload: AgentConfigRemoveInput,
+  success: Schema.Void,
+  error: AgentConfigRpcError,
+});
+
+const WsAgentConfigRepairMcpServerRpc = Rpc.make(WS_METHODS.agentConfigRepairMcpServer, {
+  payload: AgentConfigRepairMcpServerInput,
+  success: Schema.Void,
+  error: AgentConfigRpcError,
+});
+
+const WsAgentConfigSetSkillEnabledRpc = Rpc.make(WS_METHODS.agentConfigSetSkillEnabled, {
+  payload: AgentConfigSetEnabledInput,
+  success: Schema.Void,
+  error: AgentConfigRpcError,
+});
+
+const WsAgentConfigSyncMcpServerRpc = Rpc.make(WS_METHODS.agentConfigSyncMcpServer, {
+  payload: AgentConfigSyncMcpServerInput,
+  success: Schema.Void,
+  error: AgentConfigRpcError,
+});
+
+const WsAgentConfigImportPluginRpc = Rpc.make(WS_METHODS.agentConfigImportPlugin, {
+  payload: AgentConfigImportPluginInput,
+  success: Schema.Void,
+  error: AgentConfigRpcError,
+});
+
+const WsAgentConfigSetPluginEnabledRpc = Rpc.make(WS_METHODS.agentConfigSetPluginEnabled, {
+  payload: AgentConfigSetPluginEnabledInput,
+  success: Schema.Void,
+  error: AgentConfigRpcError,
+});
+
+const WsAgentConfigRemovePluginRpc = Rpc.make(WS_METHODS.agentConfigRemovePlugin, {
+  payload: AgentConfigRemovePluginInput,
+  success: Schema.Void,
+  error: AgentConfigRpcError,
+});
+
+const WsAgentConfigRemoveSkillRpc = Rpc.make(WS_METHODS.agentConfigRemoveSkill, {
+  payload: AgentConfigRemoveInput,
+  success: Schema.Void,
+  error: AgentConfigRpcError,
 });
 
 const WsSourceControlLookupRepositoryRpc = Rpc.make(WS_METHODS.sourceControlLookupRepository, {
@@ -2269,6 +2362,17 @@ export const WsRpcGroup = RpcGroup.make(
   WsIssueTrackersListRpc,
   WsIssueTrackersConnectRpc,
   WsIssueTrackersBindProjectRpc,
+  WsAgentConfigListRpc,
+  WsAgentConfigUpsertMcpServerRpc,
+  WsAgentConfigSetMcpServerEnabledRpc,
+  WsAgentConfigRemoveMcpServerRpc,
+  WsAgentConfigRepairMcpServerRpc,
+  WsAgentConfigSetSkillEnabledRpc,
+  WsAgentConfigRemoveSkillRpc,
+  WsAgentConfigSyncMcpServerRpc,
+  WsAgentConfigImportPluginRpc,
+  WsAgentConfigSetPluginEnabledRpc,
+  WsAgentConfigRemovePluginRpc,
   WsGuestShareCreateRpc,
   WsServerProbeRpc,
   WsServerGetConfigRpc,

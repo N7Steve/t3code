@@ -274,7 +274,7 @@ function MenuGroupLabel({
   return (
     <MenuPrimitive.GroupLabel
       className={cn(
-        "px-2 py-1.5 font-medium text-muted-foreground text-xs data-inset:ps-9 sm:data-inset:ps-8",
+        "px-2 py-1.5 font-ident font-medium text-muted-foreground text-xs data-inset:ps-9 sm:data-inset:ps-8",
         className,
       )}
       data-inset={inset}
@@ -298,7 +298,7 @@ function MenuShortcut({ className, ...props }: React.ComponentProps<"kbd">) {
   return (
     <kbd
       className={cn(
-        "ms-auto font-medium font-sans text-secondary-label text-xs tracking-widest",
+        "ms-auto font-medium font-ident text-secondary-label text-xs tracking-widest",
         className,
       )}
       data-slot="menu-shortcut"
@@ -312,7 +312,10 @@ function MenuShortcut({ className, ...props }: React.ComponentProps<"kbd">) {
 function MenuItemDetail({ className, ...props }: React.ComponentProps<"span">) {
   return (
     <span
-      className={cn("ms-auto shrink-0 ps-4 text-secondary-label tabular-nums", className)}
+      className={cn(
+        "ms-auto shrink-0 ps-4 font-ident text-secondary-label tabular-nums",
+        className,
+      )}
       data-slot="menu-item-detail"
       {...props}
     />

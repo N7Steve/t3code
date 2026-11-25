@@ -8,6 +8,7 @@ import {
 } from "@t3tools/contracts";
 import * as Cause from "effect/Cause";
 import * as Option from "effect/Option";
+import * as Queue from "effect/Queue";
 import * as Schema from "effect/Schema";
 import * as Clock from "effect/Clock";
 import * as SecureRandom from "effect/crypto/SecureRandom";
@@ -20,6 +21,7 @@ import * as Scope from "effect/Scope";
 import * as Semaphore from "effect/Semaphore";
 import * as Stream from "effect/Stream";
 import * as SubscriptionRef from "effect/SubscriptionRef";
+import * as PtyAdapter from "@t3tools/shared/PtyAdapter";
 
 import type * as ProviderAuth from "./auth.ts";
 
@@ -35,6 +37,72 @@ export interface ProviderAuthFlowContext {
   ) => Effect.Effect<void>;
   readonly verifying: Effect.Effect<void>;
 }
+
+export const runTerminal = Effect.fn("ProviderAuthFlow.runTerminal")(function* (options: {
+  readonly instanceId: ProviderInstanceId;
+  readonly adapter: PtyAdapter.PtyAdapter["Service"];
+  readonly spawn: PtyAdapter.PtySpawnInput;
+  readonly context: ProviderAuthFlowContext;
+  readonly exitDetail: (output: string) => string;
+}) {
+  const failure = (operation: string, detail: string) =>
+    new ProviderSetupError({ instanceId: options.instanceId, operation, detail });
+  const exited = yield* Deferred.make<number>();
+  const output = yield* Queue.sliding<string>(64);
+  const process = yield* options.adapter
+    .spawn(options.spawn)
+    .pipe(Effect.mapError(() => failure("start", "Could not open the provider sign-in terminal.")));
+  // Output can arrive immediately before exit, ahead of the transcript reader.
+  let printed = "";
+  const detachData = process.onData((data) => {
+    printed = (printed + data).slice(-4_096);
+    Queue.offerUnsafe(output, data.slice(-16_384));
+  });
+  const detachExit = process.onExit(({ exitCode }) => {
+    Deferred.doneUnsafe(exited, Effect.succeed(exitCode));
+  });
+  yield* Effect.addFinalizer(() =>
+    Effect.sync(() => {
+      detachData();
+      detachExit();
+      try {
+        process.kill();
+      } catch {}
+    }),
+  );
+
+  let transcript = "";
+  let outputOffset = 0;
+  const update = () =>
+    options.context.setInteraction(
+      { type: "terminal", id: "terminal", output: transcript, outputOffset },
+      (response) =>
+        response.type === "terminal"
+          ? Effect.try({
+              try: () => {
+                if (response.size) process.resize(response.size.cols, response.size.rows);
+                if (response.data)
+                  process.write(PtyAdapter.ptyInput(response.data, response.binary));
+              },
+              catch: () =>
+                failure("respond", "The provider sign-in terminal is no longer available."),
+            })
+          : Effect.void,
+    );
+  yield* update();
+  yield* Queue.take(output).pipe(
+    Effect.flatMap((data) => {
+      outputOffset += data.length;
+      transcript = (transcript + data).slice(-16_384);
+      return update();
+    }),
+    Effect.forever,
+    Effect.forkScoped,
+  );
+  if ((yield* Deferred.await(exited)) !== 0) {
+    return yield* failure("start", options.exitDetail(printed));
+  }
+});
 
 const isSetupError = Schema.is(ProviderSetupError);
 

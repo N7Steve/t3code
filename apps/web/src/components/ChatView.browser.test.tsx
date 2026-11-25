@@ -386,6 +386,13 @@ it("a new draft does not load its reserved thread before the server lists it", a
   // The shell snapshot has arrived once the sidebar lists the project, so the connection is up.
   await expect.element(page.getByText("render", { exact: true }).first()).toBeVisible();
 
+  const workspace = page.getByRole("button", { name: "Run context" });
+  await expect.element(workspace).toBeVisible();
+  await workspace.click();
+  await expect.element(page.getByRole("dialog", { name: "Run context" })).toBeVisible();
+  await userEvent.keyboard("{Escape}");
+  await expect.element(page.getByRole("button", { name: "Context window" })).toBeVisible();
+
   const threadRequests = fetchSpy.mock.calls
     .map(([input]) => String(input instanceof Request ? input.url : input))
     .filter((url) => url.includes(`/api/orchestration/threads/${threadId}/`));

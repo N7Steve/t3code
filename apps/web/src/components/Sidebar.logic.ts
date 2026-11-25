@@ -1035,12 +1035,14 @@ export function sidebarFolderExpansionKeys(group: {
 }
 
 /**
- * Boring sidebar folders. Folders follow `groups` order and threads keep their
- * input order. A project with no threads gets a folder only when `keepEmpty` says so.
- * A thread whose project is in no group has no folder and is left out.
+ * Sidebar project folders. Folders follow `groups` order and threads keep their
+ * input order. Every open project gets a folder, so an empty one can start a thread;
+ * an archived project only while it has threads. A thread whose project is in no
+ * group has no folder and is left out.
  */
 export function groupSidebarThreadsByProject<
   TGroup extends {
+    readonly archived: boolean;
     readonly memberProjectRefs: ReadonlyArray<{
       readonly environmentId: EnvironmentId;
       readonly projectId: string;
@@ -1050,7 +1052,6 @@ export function groupSidebarThreadsByProject<
 >(
   groups: readonly TGroup[],
   threads: readonly TThread[],
-  keepEmpty: (group: TGroup) => boolean,
 ): Array<{ group: TGroup; threads: TThread[] }> {
   const folders = groups.map((group) => ({ group, threads: [] as TThread[] }));
   const folderByProject = new Map<string, (typeof folders)[number]>();
@@ -1062,7 +1063,7 @@ export function groupSidebarThreadsByProject<
   for (const thread of threads) {
     folderByProject.get(`${thread.environmentId}:${thread.projectId}`)?.threads.push(thread);
   }
-  return folders.filter((folder) => folder.threads.length > 0 || keepEmpty(folder.group));
+  return folders.filter((folder) => folder.threads.length > 0 || !folder.group.archived);
 }
 
 export type SidebarV2TopStatusKind =

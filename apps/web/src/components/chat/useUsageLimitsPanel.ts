@@ -49,7 +49,14 @@ export function useUsageLimitsPanel(input: {
       ? // A fresh id per opening: the stack keeps the last dismissed id as "exiting".
         usageLimitsBannerItem(
           `usage-limits:${panel.key}:${panel.now}`,
-          report,
+          {
+            ...report,
+            accounts: report.accounts.toSorted(
+              (a, b) =>
+                Number(b.instanceId === providerInstanceId) -
+                Number(a.instanceId === providerInstanceId),
+            ),
+          },
           environmentId,
           () => setPanel(null),
           messages,

@@ -39,7 +39,7 @@ export interface PtyProcess {
 
 export interface PtySpawnInput {
   shell: string;
-  args?: string[];
+  args?: string[] | string;
   cwd: string;
   cols: number;
   rows: number;

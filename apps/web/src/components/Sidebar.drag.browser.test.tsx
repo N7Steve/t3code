@@ -36,11 +36,15 @@ vi.mock(import("~/rpc/requestLatencyState"), async (original) => ({
 
 it("shows the titled preview inside and outside search results from a collapsed folder", async () => {
   await page.viewport(1400, 900);
-  const [first, second] = [threadWithHistory("visible", 1), threadWithHistory("search-target", 1)];
-  using _environment = installFakeEnvironment([first, second]);
+  const first = threadWithHistory("chat-0", 1);
+  const second = threadWithHistory("search-target", 1);
+  const otherChats = Array.from({ length: 4 }, (_, index) =>
+    threadWithHistory(`chat-${index + 1}`, 1),
+  );
+  using _environment = installFakeEnvironment([first, second, ...otherChats]);
   __setClientSettingsForTests({
     ...DEFAULT_CLIENT_SETTINGS,
-    boringSidebarEnabled: true,
+    sidebarProjectFoldersEnabled: true,
     onboardingCompletedAt: "2026-01-01T00:00:00.000Z",
   });
   const router = getRouter(
@@ -54,8 +58,16 @@ it("shows the titled preview inside and outside search results from a collapsed 
   const folder = page.getByRole("button", { name: /^render/ });
   await expect.element(folder).toHaveAttribute("aria-expanded", "true");
   // A removed row fades out as a clone without its test id, so match the live row only.
-  const secondRow = page.getByTestId("sidebar-row-folder").filter({ hasText: second.title });
+  const rows = page.getByTestId("sidebar-row-folder");
+  const secondRow = rows.filter({ hasText: second.title });
+  await expect.element(rows).toHaveLength(4);
+  await expect.element(rows.last().getByText("Thread chat-3", { exact: true })).toBeVisible();
+  await expect.element(secondRow).not.toBeInTheDocument();
+  await userEvent.click(page.getByRole("button", { name: "Show more", exact: true }));
+  await expect.element(rows).toHaveLength(6);
   await expect.element(secondRow).toBeInTheDocument();
+  await userEvent.click(page.getByRole("button", { name: "Show less", exact: true }));
+  await expect.element(rows).toHaveLength(4);
   // The shift guard drops pointer presses on a row that appeared under 500ms ago; keys pass.
   folder.element().focus();
   await userEvent.keyboard("{Enter}");

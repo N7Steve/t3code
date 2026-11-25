@@ -14,6 +14,11 @@ export function composerShortcutCommands(
   composerRef: ComposerHandleRef,
   branchToolbarRef: { readonly current: BranchToolbarHandle | null },
 ): ChatShortcutCommands {
+  const openRunContext =
+    (shortcut: Parameters<BranchToolbarHandle["openPicker"]>[0]) =>
+    ({ event }: { readonly event: KeyboardEvent }) => {
+      if (!event.repeat) branchToolbarRef.current?.openPicker(shortcut);
+    };
   return {
     "modelPicker.toggle": ({ event }) => {
       if (!event.repeat) composerRef.current?.toggleModelPicker();
@@ -24,13 +29,11 @@ export function composerShortcutCommands(
     "composer.decreaseEffort": ({ event }) => {
       if (!event.repeat) composerRef.current?.stepReasoningEffort(-1);
     },
-    "composer.host": openControl(composerRef, "composer.host"),
+    "composer.host": openRunContext("composer.host"),
     "composer.effort": openControl(composerRef, "composer.effort"),
     "composer.mode": openControl(composerRef, "composer.mode"),
-    "composer.workspace": openControl(composerRef, "composer.workspace"),
-    "composer.branch": ({ event }) => {
-      if (!event.repeat) branchToolbarRef.current?.openBranchPicker();
-    },
+    "composer.workspace": openRunContext("composer.workspace"),
+    "composer.branch": openRunContext("composer.branch"),
     "composer.previousWorktree": ({ event }) => {
       if (!event.repeat) branchToolbarRef.current?.usePreviousWorktree();
     },

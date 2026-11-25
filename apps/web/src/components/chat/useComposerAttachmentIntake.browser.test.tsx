@@ -157,6 +157,7 @@ it.each(["available", "full", "duplicate"] as const)(
             addComposerFilesToDraft: () => [],
             removeComposerImageFromDraft: () => {},
             insertAttachmentReferences: () => false,
+            referenceOversizedFiles: () => false,
           }}
           ready={(value) => {
             intake = value;
@@ -280,6 +281,7 @@ it("prepares a repeated paste without a tile, and still keeps a different image"
     addComposerFilesToDraft: () => [],
     removeComposerImageFromDraft: () => {},
     insertAttachmentReferences: () => false,
+    referenceOversizedFiles: () => false,
   } satisfies IntakeInput;
   let intake!: Intake;
   await using _screen = await render(
@@ -364,6 +366,7 @@ it.each(["thread", "session"] as const)(
       addComposerFilesToDraft: () => [],
       removeComposerImageFromDraft: (id) => store.removeImage(target, id),
       insertAttachmentReferences: () => false,
+      referenceOversizedFiles: () => false,
     } satisfies IntakeInput;
     let intake!: Intake;
     await using screen = await render(

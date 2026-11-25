@@ -8,6 +8,7 @@
     />
     <meta name="theme-color" content="#000000" />
     <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <script>
@@ -50,8 +51,23 @@
           },
         };
         // Keep this small boot-time copy in sync with the built-in palettes so
-        // the selected theme is visible before the app has mounted.
+        // the selected theme is visible before the app has mounted. The first
+        // listed mode is the theme's base appearance.
         const BUILT_IN_THEME_PALETTES = {
+          ilos: {
+            dark: {
+              background: "#0b0d10",
+              foreground: "#e6e9ef",
+              accent: "#4fd1c5",
+              chrome: "#0b0d10",
+            },
+            light: {
+              background: "#f6f7f9",
+              foreground: "#14181f",
+              accent: "#0d9488",
+              chrome: "#f6f7f9",
+            },
+          },
           "t3-chat": {
             light: {
               background: "oklch(0.982446 0.010114 325.653)",
@@ -129,10 +145,13 @@
             Object.keys(palettes),
           ]),
         );
+        // Mirrors DEFAULT_THEME_PREFERENCE: used, following the OS, until a theme is picked.
+        const DEFAULT_THEME_ID = "ilos";
         const RESERVED_THEME_IDS = [
           "system",
           "light",
           "dark",
+          "ilos",
           "t3-chat",
           "grove",
           "ocean",
@@ -229,11 +248,23 @@
             "t3-iris": "iris",
           };
           const isLegacyT3ChatDark = storedTheme === "t3-chat-dark";
-          const themeId =
+          const storedThemeId =
             storedTheme === null ? "" : (LEGACY_THEME_IDS[storedTheme] ?? storedTheme);
           const legacyMode = isLegacyT3ChatDark ? "dark" : null;
-          const builtInModes = BUILT_IN_THEME_MODES[themeId] ?? null;
-          const customTheme = builtInModes ? null : findCustomTheme(themeId);
+          const storedBuiltInModes = BUILT_IN_THEME_MODES[storedThemeId] ?? null;
+          const storedCustomTheme = storedBuiltInModes ? null : findCustomTheme(storedThemeId);
+          const isKnownTheme =
+            storedTheme === "light" ||
+            storedTheme === "dark" ||
+            storedTheme === "system" ||
+            storedBuiltInModes !== null ||
+            storedCustomTheme !== null;
+          const theme = isKnownTheme ? storedTheme : DEFAULT_THEME_ID;
+          const themeId = isKnownTheme ? storedThemeId : DEFAULT_THEME_ID;
+          const builtInModes = isKnownTheme
+            ? storedBuiltInModes
+            : BUILT_IN_THEME_MODES[DEFAULT_THEME_ID];
+          const customTheme = isKnownTheme ? storedCustomTheme : null;
           const themeModes =
             builtInModes ??
             (customTheme
@@ -241,14 +272,10 @@
                   (mode) => mode === customTheme.appearance || customTheme.variants?.[mode],
                 )
               : null);
-          const isKnownTheme =
-            storedTheme === "light" ||
-            storedTheme === "dark" ||
-            storedTheme === "system" ||
-            themeModes !== null;
-          const theme = isKnownTheme && storedTheme ? storedTheme : "system";
-          const isThemed = isKnownTheme && themeModes !== null;
-          const baseAppearance = customTheme ? customTheme.appearance : "light";
+          const isThemed = themeModes !== null;
+          const baseAppearance = customTheme
+            ? customTheme.appearance
+            : (builtInModes?.[0] ?? "light");
           const systemMode = prefersDark ? "dark" : "light";
           const storedAppearanceMode = window.localStorage.getItem(
             THEME_APPEARANCE_MODE_STORAGE_KEY,
@@ -262,7 +289,7 @@
               ? "system"
               : storedFollowSystem === "false"
                 ? preferenceMode
-                : theme === "system"
+                : theme === "system" || theme === DEFAULT_THEME_ID
                   ? "system"
                   : preferenceMode;
           // A valid mix half for the wanted appearance takes over: it decides
@@ -352,14 +379,8 @@
           } else {
             delete document.documentElement.dataset.themeId;
           }
-          // A resolved half is a selection even when the base theme is gone
-          // (deleting the base leaves the mix pointing at a real theme).
-          const hasSelection = halfThemeId !== null || (isKnownTheme && storedTheme !== null);
-          if (hasSelection) {
-            document.documentElement.dataset.themeSelected = "true";
-          } else {
-            delete document.documentElement.dataset.themeSelected;
-          }
+          // Without a stored preference the default theme is the selection.
+          document.documentElement.dataset.themeSelected = "true";
           document.documentElement.classList.toggle("dark", isDark);
           const chromeColor = customColors
             ? isThemeColor(customColors.chrome)
@@ -371,11 +392,9 @@
                 ? DARK_BACKGROUND
                 : LIGHT_BACKGROUND;
           document.documentElement.style.backgroundColor = chromeColor;
-          if (hasSelection) {
-            const splashColors = customSplash ?? builtInSplash ?? fallbackSplash;
-            for (const [name, value] of Object.entries(splashColors)) {
-              document.documentElement.style.setProperty(`--boot-${name}`, value);
-            }
+          const splashColors = customSplash ?? builtInSplash ?? fallbackSplash;
+          for (const [name, value] of Object.entries(splashColors)) {
+            document.documentElement.style.setProperty(`--boot-${name}`, value);
           }
           setThemeColor(chromeColor);
         } catch {
@@ -442,7 +461,15 @@
       #boot-shell-logo {
         width: 64px;
         height: 64px;
-        object-fit: contain;
+        fill: currentColor;
+      }
+
+      #boot-shell-logo .boot-shell-logo-accent {
+        fill: #0d9488;
+      }
+
+      html.dark #boot-shell-logo .boot-shell-logo-accent {
+        fill: #29efed;
       }
 
       /* App CSS locks body and #root scrolling once main loads, so the error screen scrolls itself. */
@@ -687,7 +714,11 @@
     <div id="root">
       <div id="boot-shell">
         <div id="boot-shell-card" aria-label="T3 Code splash screen">
-          <img id="boot-shell-logo" src="/apple-touch-icon.png" alt="T3 Code" />
+          <svg id="boot-shell-logo" viewBox="0 0 156 160" role="img" aria-label="T3 Code">
+            <path d="M66 22 8 80 66 138 66 122 24 80 66 38Z" />
+            <path d="M90 22 148 80 90 138 90 122 132 80 90 38Z" />
+            <path class="boot-shell-logo-accent" d="M78 54 104 80 78 106 52 80Z" />
+          </svg>
         </div>
       </div>
     </div>

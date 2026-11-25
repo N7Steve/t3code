@@ -86,8 +86,16 @@ export function measureRestingComposerControls(
   const separator = controls.querySelector<HTMLElement>("[data-resting-controls-separator]");
   const separatorWidth = separator ? elementOuterWidth(separator) : 0;
   const overflow = controls.querySelector<HTMLElement>("[data-resting-controls-overflow]");
-  const separatorAndGapWidth = separatorWidth > 0 ? separatorWidth + gap : 0;
-  const blocks = Array.from(controls.querySelectorAll<HTMLElement>("[data-resting-block]"));
+  // A spacer that pushes the selects to the end takes no width of its own, only one gap.
+  const spacerGap = controls.querySelector("[data-resting-controls-spacer]") ? gap : 0;
+  const separatorAndGapWidth = (separatorWidth > 0 ? separatorWidth + gap : 0) + spacerGap;
+  // Blocks collapse by priority, which need not match where they sit in the row.
+  const blocks = Array.from(
+    controls.querySelectorAll<HTMLElement>("[data-resting-block]"),
+  ).toSorted(
+    (a, b) =>
+      Number(a.dataset.restingBlockPriority ?? 0) - Number(b.dataset.restingBlockPriority ?? 0),
+  );
   const widths = blocks.map(controlBlockWidths);
   return {
     gap,

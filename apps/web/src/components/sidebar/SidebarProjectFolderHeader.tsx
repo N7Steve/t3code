@@ -1,9 +1,9 @@
 import type { EnvironmentThreadShell } from "@t3tools/client-runtime/state/models";
 import { scopedThreadKey, scopeThreadRef } from "@t3tools/client-runtime/environment";
 import type { ContextMenuSource } from "@t3tools/contracts";
-import { ChevronDownIcon, SquarePenIcon } from "lucide-react";
+import { ChevronDownIcon, GripVerticalIcon, PlusIcon } from "lucide-react";
 import { msg, T, useGT, useMessages, Var } from "gt-react";
-import { memo } from "react";
+import { memo, useState } from "react";
 
 import { cn } from "~/lib/utils";
 import { contextMenuSourceOf } from "../../contextMenuSource";
@@ -34,14 +34,18 @@ export function sidebarFolderRowId(projectKey: string) {
 }
 
 /**
- * A project folder in the boring sidebar. It reads like a shelf header: a trailing
- * count and chevron, with the count and a status dot only while it is closed, so a
- * closed folder still says when a hidden thread needs you.
+ * A project folder in the sidebar. It reads like a shelf header: a trailing count
+ * and chevron, with a status dot only while it is closed, so a closed folder still
+ * says when a hidden thread needs you.
  */
 export const SidebarProjectFolderHeader = memo(function SidebarProjectFolderHeader(props: {
   group: SidebarProjectSnapshot;
   collapsed: boolean;
+  threadCount: number;
   hiddenThreads: readonly EnvironmentThreadShell[];
+  previousProjectKey: string | null;
+  nextProjectKey: string | null;
+  onReorder: (sourceKey: string, destinationKey: string) => void;
   onToggle: (group: SidebarProjectSnapshot) => void;
   onNewThread: (group: SidebarProjectSnapshot) => void;
   onContextMenu: (
@@ -52,8 +56,12 @@ export const SidebarProjectFolderHeader = memo(function SidebarProjectFolderHead
 }) {
   const gt = useGT();
   const m = useMessages();
-  const { group, collapsed, hiddenThreads } = props;
+  const { group, collapsed, threadCount, hiddenThreads, previousProjectKey, nextProjectKey } =
+    props;
   const rowId = sidebarFolderRowId(group.projectKey);
+  const canReorder = previousProjectKey !== null || nextProjectKey !== null;
+  const dragType = group.pinned ? "application/x-t3-pinned-project" : "application/x-t3-project";
+  const [dropTarget, setDropTarget] = useState(false);
   const localLastVisitedAtById = useUiStateStore((state) => state.threadLastVisitedAtById);
   const dot = collapsed
     ? resolveSidebarFolderDot(
@@ -71,7 +79,38 @@ export const SidebarProjectFolderHeader = memo(function SidebarProjectFolderHead
   return (
     <li
       data-testid="sidebar-project-folder"
-      className="group/project-folder relative mt-2 list-none first:mt-0"
+      className={cn(
+        "group/project-folder relative mt-2 list-none rounded-(--control-radius) first:mt-0",
+        dropTarget && "ring-1 ring-inset ring-ring",
+      )}
+      onDragOver={
+        canReorder
+          ? (event) => {
+              if (!event.dataTransfer.types.includes(dragType)) return;
+              event.preventDefault();
+              event.dataTransfer.dropEffect = "move";
+              setDropTarget(true);
+            }
+          : undefined
+      }
+      onDragLeave={(event) => {
+        if (
+          !(event.relatedTarget instanceof Node) ||
+          !event.currentTarget.contains(event.relatedTarget)
+        )
+          setDropTarget(false);
+      }}
+      onDrop={
+        canReorder
+          ? (event) => {
+              const source = event.dataTransfer.getData(dragType);
+              if (!source) return;
+              event.preventDefault();
+              setDropTarget(false);
+              props.onReorder(source, group.projectKey);
+            }
+          : undefined
+      }
     >
       <button
         type="button"
@@ -88,8 +127,13 @@ export const SidebarProjectFolderHeader = memo(function SidebarProjectFolderHead
         }}
         className="flex h-8 w-full cursor-pointer items-center gap-2.5 rounded-(--control-radius) px-(--sidebar-row-content-inset) text-left outline-none hover:bg-sidebar-row-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
       >
-        <ProjectFavicon project={group} className="size-4 shrink-0" />
-        <span className="min-w-0 flex-1 truncate text-sm font-medium text-sidebar-foreground/90">
+        <ProjectFavicon project={group} className="size-5 shrink-0" />
+        <span
+          className={cn(
+            "min-w-0 flex-1 truncate text-sm font-medium text-sidebar-foreground/90",
+            canReorder && "pe-6",
+          )}
+        >
           {group.displayName}
         </span>
         {dot ? (
@@ -97,9 +141,9 @@ export const SidebarProjectFolderHeader = memo(function SidebarProjectFolderHead
             <span className="sr-only">{m(FOLDER_DOT_LABEL[dot])}</span>
           </span>
         ) : null}
-        {collapsed && hiddenThreads.length > 0 ? (
-          <span className="shrink-0 text-xs tabular-nums text-sidebar-muted-foreground group-hover/project-folder:invisible group-has-[[data-sidebar-action-for]:focus]/project-folder:invisible pointer-coarse:invisible">
-            {hiddenThreads.length}
+        {threadCount > 0 ? (
+          <span className="shrink-0 font-ident text-xs tabular-nums text-sidebar-muted-foreground group-hover/project-folder:invisible group-has-[[data-sidebar-action-for]:focus]/project-folder:invisible pointer-coarse:invisible">
+            {threadCount}
           </span>
         ) : null}
         <ChevronDownIcon
@@ -110,6 +154,39 @@ export const SidebarProjectFolderHeader = memo(function SidebarProjectFolderHead
           )}
         />
       </button>
+      {canReorder ? (
+        <span className="absolute inset-y-0 right-12 flex items-center opacity-0 focus-within:opacity-100 group-hover/project-folder:opacity-100">
+          <button
+            type="button"
+            draggable
+            data-sidebar-action-for={rowId}
+            aria-label={gt("Reorder project {project}", { project: group.displayName })}
+            aria-keyshortcuts="ArrowUp ArrowDown"
+            className="grid size-6 cursor-grab place-items-center rounded-(--control-radius) bg-sidebar text-sidebar-muted-foreground outline-none hover:bg-sidebar-row-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring active:cursor-grabbing"
+            onDragStart={(event) => {
+              event.dataTransfer.effectAllowed = "move";
+              event.dataTransfer.setData(dragType, group.projectKey);
+              const header = event.currentTarget.closest("li");
+              if (header) event.dataTransfer.setDragImage(header, 20, header.offsetHeight / 2);
+            }}
+            onDragEnd={() => setDropTarget(false)}
+            onKeyDown={(event) => {
+              const destination =
+                event.key === "ArrowUp"
+                  ? previousProjectKey
+                  : event.key === "ArrowDown"
+                    ? nextProjectKey
+                    : null;
+              if (destination === null) return;
+              event.preventDefault();
+              event.stopPropagation();
+              props.onReorder(group.projectKey, destination);
+            }}
+          >
+            <GripVerticalIcon aria-hidden className="size-4" />
+          </button>
+        </span>
+      ) : null}
       {/* Sits over the count, which hides on hover or focus, and left of the chevron. */}
       <span className="absolute inset-y-0 right-6 flex items-center opacity-0 focus-within:opacity-100 group-hover/project-folder:opacity-100 pointer-coarse:opacity-100">
         <Tooltip>
@@ -124,7 +201,7 @@ export const SidebarProjectFolderHeader = memo(function SidebarProjectFolderHead
               />
             }
           >
-            <SquarePenIcon aria-hidden />
+            <PlusIcon aria-hidden />
           </TooltipTrigger>
           <TooltipPopup>
             <T>

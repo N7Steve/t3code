@@ -45,13 +45,15 @@ function BoringSidebarRow() {
       )}
       control={
         <Switch
-          checked={settings.boringSidebarEnabled}
-          onCheckedChange={(checked) => updateSettings({ boringSidebarEnabled: Boolean(checked) })}
+          checked={settings.sidebarProjectFoldersEnabled}
+          onCheckedChange={(checked) =>
+            updateSettings({ sidebarProjectFoldersEnabled: Boolean(checked) })
+          }
           aria-label={gt("Boring sidebar (group by project)")}
         />
       }
     >
-      {settings.boringSidebarEnabled ? (
+      {settings.sidebarProjectFoldersEnabled ? (
         <div className="mt-2 mb-2 border-l-2 border-border/60 ps-3">
           <BoringSidebarMultilineRow />
         </div>

@@ -4,12 +4,12 @@ import {
   isReasoningControl,
   selectableProviderOptionChoices,
 } from "@t3tools/client-runtime/model-traits";
-import type { ProviderOptionDescriptor, RuntimeMode } from "@t3tools/contracts";
+import type { ProviderOptionDescriptor } from "@t3tools/contracts";
 import type { EffortDisplay } from "@t3tools/contracts/settings";
 import { getProviderOptionCurrentLabel } from "@t3tools/shared/model";
 import { msg, T, useGT, useMessages } from "gt-react";
-import { CheckIcon, ChevronRightIcon, ChevronUpIcon, WorkflowIcon } from "lucide-react";
-import { type KeyboardEvent, type ReactNode, use, useRef, useState } from "react";
+import { CheckIcon, ChevronRightIcon, WorkflowIcon } from "lucide-react";
+import { type KeyboardEvent, type ReactNode, useRef, useState } from "react";
 
 import { m, type MessageResolver } from "~/i18n/messages";
 import { cn } from "~/lib/utils";
@@ -24,10 +24,8 @@ import {
 import { Switch } from "../ui/switch";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
 import type { ComposerControlSize } from "./ComposerControl";
-import { ComposerPermissionsSection, type RuntimeModeOption } from "./ComposerFooterControls";
-import { composerFloatingLayerProps, focusCheckedPermission } from "./composerEventScope";
+import { composerFloatingLayerProps } from "./composerEventScope";
 import { EffortGlyph, FastBolt, resolveEffortGlyph } from "./EffortGlyph";
-import { DockedPickerContext } from "./ProviderModelPicker";
 import {
   getTraitsSectionVisibility,
   type TraitsSelectionInput,
@@ -151,17 +149,19 @@ export function describeComposerEffort(
   return {
     detail: display.label,
     suffix: (
-      <span
-        className={cn(
-          "flex shrink-0 items-center gap-1.5 text-muted-foreground group-hover/model-trigger:text-foreground group-data-pressed/model-trigger:text-foreground group-data-popup-open/model-trigger:text-foreground",
-          // A word space after the model name: the regular trigger's gap is wider than one.
-          size === "sm" && "-ms-0.5",
-        )}
-      >
+      <span className={cn("flex shrink-0 items-center", size === "xs" ? "gap-1" : "gap-1.5")}>
         {word ? (
-          <span data-composer-control-label className="max-w-24 truncate">
-            {word}
-          </span>
+          <>
+            <span data-composer-control-label className="max-w-24 truncate">
+              {word}
+            </span>
+            {/* Icon-only footers keep the level readable as bars. */}
+            {glyph ? (
+              <span data-composer-control-compact-icon className="invisible absolute">
+                <EffortGlyph count={glyph.count} filled={glyph.filled} size={size} />
+              </span>
+            ) : null}
+          </>
         ) : glyph ? (
           <EffortGlyph count={glyph.count} filled={glyph.filled} size={size} />
         ) : null}
@@ -521,11 +521,13 @@ function NoEffortRow() {
   );
 }
 
-/** The model picker's effort column: the selected model's levels and its other options. */
-export function ComposerEffortColumn(props: { traits: TraitsSelectionInput | null }) {
+/** The reasoning select's column: the selected model's levels and its other options. */
+export function ComposerEffortColumn(props: {
+  traits: TraitsSelectionInput | null;
+  modelLabel?: string | undefined;
+}) {
   const gt = useGT();
   const messages = useMessages();
-  const picker = use(DockedPickerContext);
   const visibility = props.traits
     ? getTraitsSectionVisibility({ ...props.traits, resolve: messages })
     : null;
@@ -535,23 +537,23 @@ export function ComposerEffortColumn(props: { traits: TraitsSelectionInput | nul
       : null;
   return (
     <>
-      {/* Matches the search row's box, so one rule runs across the top of the popup. */}
       <div className="shrink-0 px-3 pt-2.5">
-        <div className="flex h-8.25 -translate-y-px items-center gap-2 border-b border-border/70 pb-1.5 text-sm">
+        <div className="flex h-8 items-center gap-2 border-b border-border/70 pb-1.5 text-sm">
           <span className="text-muted-foreground">
             {controls?.effort?.descriptor.label ??
               (controls?.others.length
                 ? gt("Options", { $context: "heading for model options" })
                 : gt("Effort", { $context: "heading for reasoning effort levels" }))}
           </span>
-          <span className="ms-auto min-w-0 truncate text-muted-foreground text-xs">
-            {picker.modelLabel}
-          </span>
+          {props.modelLabel ? (
+            <span className="ms-auto min-w-0 truncate text-muted-foreground text-xs">
+              {props.modelLabel}
+            </span>
+          ) : null}
         </div>
       </div>
-      {/* pt-2.5 puts the first level on the same line as the first model. */}
       <div
-        className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto overscroll-contain px-2 pt-2.5 pb-1.5"
+        className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto overscroll-contain px-2 pt-1.5 pb-1.5"
         // Capture, so Up and Down on an option row move rows instead of opening its menu.
         onKeyDownCapture={moveBetweenRows}
       >
@@ -662,65 +664,18 @@ function UltracodeControl(props: { traits: TraitsSelectionInput }) {
   );
 }
 
-/** Permissions change rarely, so the footer names the mode and nests the choice in a menu. */
-function PermissionsMenu(props: {
-  runtimeMode: RuntimeMode;
-  options: ReadonlyArray<RuntimeModeOption>;
-  onChange: (mode: RuntimeMode) => void;
-}) {
-  const gt = useGT();
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const current = props.options.find((option) => option.mode === props.runtimeMode);
-  if (!current) return null;
-  const CurrentIcon = current.icon;
-  return (
-    <Menu
-      onOpenChangeComplete={(open) => {
-        if (open) focusCheckedPermission(triggerRef.current);
-      }}
-    >
-      <MenuTrigger
-        render={
-          <button
-            ref={triggerRef}
-            type="button"
-            data-composer-permissions-trigger
-            aria-label={gt("Permissions: {mode}", { mode: current.label })}
-            className="ms-auto flex h-7 cursor-pointer items-center gap-1.5 rounded-md px-2 text-muted-foreground text-xs outline-none hover:bg-foreground/[0.09] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset data-popup-open:bg-foreground/[0.09] data-popup-open:text-foreground"
-          />
-        }
-      >
-        <CurrentIcon aria-hidden="true" className="size-3.5" />
-        {current.label}
-        <ChevronUpIcon aria-hidden="true" className="size-3" />
-      </MenuTrigger>
-      <MenuPopup side="top" align="end" {...composerFloatingLayerProps}>
-        <ComposerPermissionsSection
-          runtimeMode={props.runtimeMode}
-          runtimeModeOptions={props.options}
-          onRuntimeModeChange={props.onChange}
-        />
-      </MenuPopup>
-    </Menu>
+/** Speed and Ultracode stay one click away under the reasoning levels. */
+export function ComposerPickerFooter(props: { traits: TraitsSelectionInput }) {
+  const traits = useTraitsSelection(props.traits);
+  const { speedSelect, fastToggle, ultracodeToggle } = splitSpeed(
+    traits.selectDescriptors,
+    traits.booleanDescriptors,
   );
-}
-
-/** The model picker's footer: speed stays one click away, permissions sit one menu deeper. */
-export function ComposerPickerFooter(props: {
-  traits: TraitsSelectionInput | null;
-  runtimeMode: RuntimeMode;
-  runtimeModeOptions: ReadonlyArray<RuntimeModeOption>;
-  onRuntimeModeChange: (mode: RuntimeMode) => void;
-}) {
+  if (traits.modelIsUnavailable || (!speedSelect && !fastToggle && !ultracodeToggle)) return null;
   return (
     <div className="flex flex-wrap items-center gap-2 border-t border-border/70 bg-muted/40 px-3 py-2">
-      {props.traits ? <SpeedControl traits={props.traits} /> : null}
-      {props.traits ? <UltracodeControl traits={props.traits} /> : null}
-      <PermissionsMenu
-        runtimeMode={props.runtimeMode}
-        options={props.runtimeModeOptions}
-        onChange={props.onRuntimeModeChange}
-      />
+      <SpeedControl traits={props.traits} />
+      <UltracodeControl traits={props.traits} />
     </div>
   );
 }

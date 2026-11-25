@@ -37,6 +37,7 @@ import type {
   RuntimeRequestId,
   ScopedThreadRef,
   ServerProvider,
+  ServerProviderSkill,
   ThreadId,
 } from "@t3tools/contracts";
 import {
@@ -55,6 +56,7 @@ import { formatComposerModelMention } from "@t3tools/client-runtime/composer-mod
 import { isPasteAsTextShortcut } from "@t3tools/client-runtime/text-paste";
 import { scopedThreadKey, scopeThreadRef } from "@t3tools/client-runtime/environment";
 import { serializeComposerFileLink } from "@t3tools/shared/composerTrigger";
+import { fileAttachmentTooLargeMessage } from "@t3tools/client-runtime/state/attachments";
 import { type FolderDropTarget, folderDropTarget, resolveDroppedFolderPath } from "./folderDrop";
 import { splitTransferredFiles } from "./workspaceFileDrop";
 import { createModelSelection, normalizeModelSlug } from "@t3tools/shared/model";
@@ -98,7 +100,6 @@ import { serializeComposerImages } from "./composerImagePersistence";
 import {
   isInsideCollapsedComposerControls,
   isInsideRestingComposerControlScope,
-  markOpenToEffort,
   markOpenToPermissions,
 } from "./composerEventScope";
 import {
@@ -115,6 +116,7 @@ import {
 } from "../../composerDraftStore";
 import { buildDraftThreadRouteParams, buildThreadRouteParams } from "../../threadRoutes";
 import { ComposerStashBadge } from "./ComposerStashBadge";
+import { ComposerSkillPicker } from "./ComposerSkillPicker";
 import { ComposerStashMenu } from "./ComposerStashMenu";
 import { useComposerTriggerState } from "./useComposerTriggerState";
 import { useComposerMenuItems } from "./useComposerMenuItems";
@@ -289,6 +291,7 @@ import {
   usePreparingComposerImages,
   useSubmitAfterPreparingImages,
 } from "./preparingComposerImages";
+import { ComposerFooterModeControls } from "./ComposerFooterControls";
 import { ComposerControlsBar } from "./ComposerControlsBar";
 import { composerCommandKeyHandler } from "./composerCommandKey";
 import { usePromptSuggestion } from "./usePromptSuggestion";
@@ -436,9 +439,6 @@ export interface ChatComposerProps {
   pullRequestRepository: string | null;
   threadPullRequests: ReadonlyArray<ThreadPullRequestLink> | undefined;
   onComposerOverlayHeightChange: (height: number) => void;
-  /** The new-thread strip names the permissions, so the controls row hides its chip. */
-  permissionsShownInStrip: boolean;
-
   promptRef: React.RefObject<string>;
   composerImagesRef: React.RefObject<ComposerImageAttachment[]>;
   composerFilesRef: React.RefObject<ComposerFileAttachment[]>;
@@ -2502,6 +2502,16 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
     : composerControlsCollapsed
       ? 0
       : expandedControlsIconOnlyBlockCount;
+  const composerPermissions = (
+    <ComposerFooterModeControls
+      runtimeMode={compatibleRuntimeMode}
+      runtimeModeOptions={compatibleRuntimeModeOptions}
+      size={composerControlsCollapsed ? "xs" : "sm"}
+      hidden={composerControlsHidden || dictationTakesFooter}
+      emphasized={compatibleRuntimeMode !== props.defaultRuntimeMode}
+      onRuntimeModeChange={handleRuntimeModeChange}
+    />
+  );
   const composerControls = (
     <ComposerControlsBar
       environmentId={environmentId}
@@ -2517,13 +2527,8 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
       reportedModelSelection={reportedModelSelection}
       promptUltrathink={promptUltrathink}
       onPromptEdit={editPromptFromTraitsStable}
-      compatibleRuntimeMode={compatibleRuntimeMode}
-      defaultRuntimeMode={props.defaultRuntimeMode}
-      compatibleRuntimeModeOptions={compatibleRuntimeModeOptions}
-      handleRuntimeModeChange={handleRuntimeModeChange}
       composerControlsCollapsed={composerControlsCollapsed}
       effortDisplay={settings.effortDisplay}
-      permissionsShownInStrip={props.permissionsShownInStrip}
       composerControlsHidden={composerControlsHidden}
       restingHiddenBlockCount={restingHiddenBlockCount}
       iconOnlyBlockCount={iconOnlyBlockCount}
@@ -2542,6 +2547,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
       lockedProvider={lockedProvider}
       lockedContinuationGroupKey={lockedContinuationGroupKey}
       providerInstanceEntries={providerInstanceEntries}
+
       keybindings={keybindings}
       modelOptionsByInstance={modelOptionsByInstance}
       terminalOpen={terminalOpen}
@@ -2681,6 +2687,9 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
     );
   };
   const insertComposerTextStable = useStableCallback(insertComposerText);
+  const insertSkillStable = useStableCallback((skill: ServerProviderSkill) => {
+    insertComposerText(`$${skill.name} `, "cursor", { ensureLeadingBoundary: true });
+  });
 
   const insertAttachmentReferences = (
     references: ReadonlyArray<ComposerContextReference>,
@@ -2713,32 +2722,6 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
     });
   };
 
-  const { addComposerAttachments, removeComposerImage, foldPastedText } =
-    useComposerAttachmentIntake({
-      activeThreadId,
-      activePendingProgress,
-      activePendingIsResponding,
-      pendingUserInputs,
-      supportsQuestionAttachments,
-      isLiteralPendingAnswer,
-      projectSelectionRequired,
-      questionAttachmentTarget,
-      attachmentTargetKey,
-      fileStagingLimit,
-      promptRef,
-      composerImagesRef,
-      composerFilesRef,
-      composerEditorRef,
-      isRevertingCheckpointRef,
-      setThreadError,
-      countReservedAttachments,
-      addComposerImage,
-      addComposerImagesToDraft,
-      addComposerFilesToDraft,
-      removeComposerImageFromDraft,
-      insertAttachmentReferences,
-    });
-
   const onComposerCommandKeyStable = useStableCallback(onComposerCommandKey);
   const isPathQueryActiveStable = useStableCallback(
     () => resolveActiveComposerTrigger().trigger?.kind === "path",
@@ -2754,20 +2737,25 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
   };
   const insertComposerTextAtEndStable = useStableCallback(insertComposerTextAtEnd);
 
+  const resolveLocalDropPath = async (
+    file: File,
+    target: FolderDropTarget,
+  ): Promise<string | null> => {
+    const bridge = window.desktopBridge;
+    const droppedPath = resolveDroppedFolderPath(file, bridge?.getPathForFile);
+    return droppedPath === null || typeof target === "string"
+      ? droppedPath
+      : ((await bridge?.toLocalBackendPath(target.wslBackendId, droppedPath).catch(() => null)) ??
+          null);
+  };
+
   const insertComposerFolders = async (
     folders: File[],
     target: FolderDropTarget,
     draftKey: string,
   ) => {
-    const bridge = window.desktopBridge;
     for (const folder of folders) {
-      const droppedPath = resolveDroppedFolderPath(folder, bridge?.getPathForFile);
-      const path =
-        droppedPath === null || typeof target === "string"
-          ? droppedPath
-          : ((await bridge
-              ?.toLocalBackendPath(target.wslBackendId, droppedPath)
-              .catch(() => null)) ?? null);
+      const path = await resolveLocalDropPath(folder, target);
       // ChatView is reused across threads, so a slow conversion must not land in the next draft.
       if (!composerMountedRef.current || attachmentTargetKeyRef.current !== draftKey) return;
       if (path === null) {
@@ -2793,8 +2781,8 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
     focusComposer();
   };
 
-  const addComposerFolders = (folders: File[]) => {
-    const target = folderDropTarget({
+  const localDropTarget = (): FolderDropTarget =>
+    folderDropTarget({
       localEnvironmentDisabled: isLocalEnvironmentDisabled(),
       environmentId,
       primaryEnvironmentId,
@@ -2809,6 +2797,9 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
               typeof bootstrap.runningDistro === "string",
           ) === true,
     });
+
+  const addComposerFolders = (folders: File[]) => {
+    const target = localDropTarget();
     if (target === "remote") {
       toastManager.add({
         type: "error",
@@ -2824,6 +2815,71 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
     );
   };
   const addComposerFoldersStable = useStableCallback(addComposerFolders);
+
+  const insertOversizedFileReferences = async (
+    files: File[],
+    limitBytes: number,
+    target: FolderDropTarget,
+    draftKey: string,
+  ) => {
+    for (const file of files) {
+      const path = await resolveLocalDropPath(file, target);
+      if (!composerMountedRef.current || attachmentTargetKeyRef.current !== draftKey) return;
+      const inserted =
+        path !== null &&
+        insertComposerTextAtEndStable(`${serializeComposerFileLink(path)} `, {
+          ensureLeadingBoundary: true,
+        });
+      // Not referenced, so the file is still too large to send.
+      if (!inserted) {
+        setThreadError(
+          activeThreadId,
+          fileAttachmentTooLargeMessage(file.name, limitBytes, resolveMessage),
+        );
+      }
+    }
+    focusComposer();
+  };
+
+  // A server on this computer reads the file where it is, so a copy is only needed to upload it.
+  const referenceOversizedFiles = (files: File[], limitBytes: number): boolean => {
+    if (window.desktopBridge?.getPathForFile === undefined) return false;
+    const target = localDropTarget();
+    if (target === "remote") return false;
+    const draftKey = attachmentTargetKeyRef.current;
+    pendingDraftWork.begin(draftKey);
+    void insertOversizedFileReferences(files, limitBytes, target, draftKey).finally(() =>
+      pendingDraftWork.end(draftKey),
+    );
+    return true;
+  };
+
+  const { addComposerAttachments, removeComposerImage, foldPastedText } =
+    useComposerAttachmentIntake({
+      activeThreadId,
+      activePendingProgress,
+      activePendingIsResponding,
+      pendingUserInputs,
+      supportsQuestionAttachments,
+      isLiteralPendingAnswer,
+      projectSelectionRequired,
+      questionAttachmentTarget,
+      attachmentTargetKey,
+      fileStagingLimit,
+      promptRef,
+      composerImagesRef,
+      composerFilesRef,
+      composerEditorRef,
+      isRevertingCheckpointRef,
+      setThreadError,
+      countReservedAttachments,
+      addComposerImage,
+      addComposerImagesToDraft,
+      addComposerFilesToDraft,
+      removeComposerImageFromDraft,
+      insertAttachmentReferences,
+      referenceOversizedFiles,
+    });
 
   const onComposerPaste = (event: React.ClipboardEvent<HTMLElement>) => {
     const { files, folders } = splitTransferredFiles(event.clipboardData);
@@ -3199,7 +3255,6 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
         if (!trigger) return;
         trigger.focus({ preventScroll: true });
         if (command === "composer.mode") markOpenToPermissions(trigger);
-        if (command === "composer.effort") markOpenToEffort(trigger);
         trigger.click();
       },
       compactContext: compactThreadContextStable,
@@ -3423,6 +3478,14 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
       focusComposer={focusComposer}
     />
   ) : null;
+  const composerSkillPicker =
+    canOperateThread &&
+    !activePendingProgress &&
+    !isComposerApprovalState &&
+    !projectSelectionRequired &&
+    !showProviderUnavailable ? (
+      <ComposerSkillPicker skills={selectedProviderSkills} onSelect={insertSkillStable} />
+    ) : null;
   return (
     <form
       ref={composerFormRef}
@@ -3476,9 +3539,10 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
       data-chat-composer-form="true"
       {...threadContextDropTargetProps()}
     >
+      <ComposerBannerStack items={bannerItems.filter((item) => item.compact)} detached />
       <ComposerBanner.Dock>
         <ComposerBanner.Column>
-          <ComposerBannerStack items={shelfItems} />
+          <ComposerBannerStack items={shelfItems.filter((item) => !item.compact)} />
           {showComposerTopDrawer ? (
             <ComposerBanner.Attachment>
               <ComposerBanner.Root data-chat-composer-top-drawer="true" variant="info">
@@ -3812,8 +3876,12 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                     "hidden sm:flex",
                 )}
               >
-                {composerAttachButton && !dictationTakesFooter ? (
-                  <div className="me-2">{composerAttachButton}</div>
+                {!dictationTakesFooter ? (
+                  <div className="me-2 flex items-center">
+                    {composerAttachButton}
+                    {composerSkillPicker}
+                    {composerPermissions}
+                  </div>
                 ) : null}
                 <div
                   data-chat-composer-actions="right"
@@ -3936,6 +4004,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                       !restingControlsVisible && "invisible",
                     )}
                   >
+                    {composerPermissions}
                     {composerControls}
                   </div>
                 </div>

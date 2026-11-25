@@ -11,7 +11,7 @@ import {
   paceRemainingPercent,
   remainingPercent,
 } from "@t3tools/shared/usageLimits";
-import { formatDuration, limitsNotice } from "@t3tools/shared/usageLimitsCopy";
+import { formatResetsIn, limitsNotice } from "@t3tools/shared/usageLimitsCopy";
 import { Link } from "@tanstack/react-router";
 import { msg, useGT, useLocale, useMessages } from "gt-react";
 import type { ReactNode } from "react";
@@ -167,7 +167,8 @@ function LimitRow({
   const left = remainingPercent(window);
   const pace = paceOf(window, now);
   const timeLeft = paceRemainingPercent(window, now);
-  const resetsAt = window.resetsAt ? Date.parse(window.resetsAt) : Number.NaN;
+  const resetsIn = formatResetsIn(window, now, m);
+  const value = gt("{left}% left", { left });
   return (
     <UsageRow
       label={window.label}
@@ -175,7 +176,8 @@ function LimitRow({
       tone={left <= 10 ? "error" : left <= 20 ? "warning" : null}
       tick={timeLeft}
       value={`${left}%`}
-      ariaValue={gt("{left}% left", { left })}
+      secondaryValue={resetsIn}
+      ariaValue={resetsIn ? `${value}, ${resetsIn}` : value}
       opensUsage
       tooltip={
         <>
@@ -187,11 +189,17 @@ function LimitRow({
               {m(PACE_LABEL[pace])} · {gt("{timeLeft}% of the window left", { timeLeft })}
             </span>
           ) : null}
-          {window.resetsAt && resetsAt > now ? (
+          {window.resetsAt && resetsIn ? (
             <span className="text-muted-foreground">
-              {gt("Resets in {duration} · {time}", {
-                duration: formatDuration(resetsAt - now, m),
-                time: formatUpcomingTimestamp(window.resetsAt, timestampFormat, now, undefined, m),
+              {gt("Resets {resetsAt} · {resetsIn}", {
+                resetsAt: formatUpcomingTimestamp(
+                  window.resetsAt,
+                  timestampFormat,
+                  now,
+                  undefined,
+                  m,
+                ),
+                resetsIn,
               })}
             </span>
           ) : null}
@@ -208,6 +216,7 @@ function UsageRow({
   tone,
   tick = null,
   value,
+  secondaryValue,
   ariaValue = value,
   tooltip,
   muted = false,
@@ -220,6 +229,7 @@ function UsageRow({
   /** A marker on the bar, from 0 to 100. */
   readonly tick?: number | null;
   readonly value: string;
+  readonly secondaryValue?: string | null;
   readonly ariaValue?: string;
   readonly tooltip: ReactNode;
   readonly muted?: boolean;
@@ -229,7 +239,8 @@ function UsageRow({
   const rowProps = {
     "aria-label": gt("{label}: {value}", { label, value: ariaValue }),
     className: cn(
-      "col-span-3 grid h-6 grid-cols-subgrid items-center rounded-lg px-2.5 outline-none hover:bg-black/[0.035] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring data-popup-open:bg-black/[0.035] dark:hover:bg-white/[0.08] dark:data-popup-open:bg-white/[0.08]",
+      "col-span-3 grid min-h-6 grid-cols-subgrid items-center rounded-lg px-2.5 outline-none hover:bg-black/[0.035] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring data-popup-open:bg-black/[0.035] dark:hover:bg-white/[0.08] dark:data-popup-open:bg-white/[0.08]",
+      secondaryValue && "py-1",
       opensUsage
         ? "group cursor-pointer active:bg-black/[0.06] dark:active:bg-white/[0.12]"
         : "cursor-default",
@@ -286,6 +297,11 @@ function UsageRow({
           )}
         >
           {value}
+          {secondaryValue ? (
+            <span className="block max-w-28 text-2xs leading-tight font-normal text-muted-foreground">
+              {secondaryValue}
+            </span>
+          ) : null}
         </span>
       </TooltipTrigger>
       {/* Rows sit 8px inside the card; clear its edge instead of overlapping it. */}

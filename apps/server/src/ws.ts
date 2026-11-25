@@ -254,6 +254,7 @@ import * as PullRequestService from "./pullRequest/PullRequestService.ts";
 import * as IssueService from "./issue/IssueService.ts";
 import * as ThreadIssueService from "./orchestration-v2/ThreadIssueService.ts";
 import * as IssueTrackerConnections from "./issue/IssueTrackerConnections.ts";
+import * as AgentConfig from "./agentConfig/AgentConfig.ts";
 import * as PullRequestReviewGuideService from "./pullRequest/PullRequestReviewGuideService.ts";
 import { listLinkedPullRequestThreads } from "./pullRequest/linkedThreads.ts";
 import { pullRequestSyncKey } from "./pullRequest/pullRequestSyncKey.ts";
@@ -1490,6 +1491,7 @@ export const layerWsRpc = (
       const issues = yield* IssueService.IssueService;
       const threadIssues = yield* ThreadIssueService.ThreadIssueService;
       const issueTrackers = yield* IssueTrackerConnections.IssueTrackerConnections;
+      const agentConfig = yield* AgentConfig.AgentConfig;
       const reviewGuides = yield* PullRequestReviewGuideService.PullRequestReviewGuideService;
       const pullRequestSync = yield* PullRequestSyncReactor.PullRequestSyncReactor;
       const deviceService = yield* DeviceService.DeviceService;
@@ -1992,6 +1994,18 @@ export const layerWsRpc = (
         [WS_METHODS.issueTrackersList]: () => issueTrackers.list,
         [WS_METHODS.issueTrackersConnect]: (input) => issueTrackers.connect(input),
         [WS_METHODS.issueTrackersBindProject]: (input) => issueTrackers.bindProject(input),
+        [WS_METHODS.agentConfigList]: () => agentConfig.list,
+        [WS_METHODS.agentConfigUpsertMcpServer]: (input) => agentConfig.upsertMcpServer(input),
+        [WS_METHODS.agentConfigSetMcpServerEnabled]: (input) =>
+          agentConfig.setMcpServerEnabled(input),
+        [WS_METHODS.agentConfigRemoveMcpServer]: (input) => agentConfig.removeMcpServer(input),
+        [WS_METHODS.agentConfigRepairMcpServer]: (input) => agentConfig.repairMcpServer(input),
+        [WS_METHODS.agentConfigSetSkillEnabled]: (input) => agentConfig.setSkillEnabled(input),
+        [WS_METHODS.agentConfigRemoveSkill]: (input) => agentConfig.removeSkill(input),
+        [WS_METHODS.agentConfigSyncMcpServer]: (input) => agentConfig.syncMcpServer(input),
+        [WS_METHODS.agentConfigImportPlugin]: (input) => agentConfig.importPlugin(input),
+        [WS_METHODS.agentConfigSetPluginEnabled]: (input) => agentConfig.setPluginEnabled(input),
+        [WS_METHODS.agentConfigRemovePlugin]: (input) => agentConfig.removePlugin(input),
         [ORCHESTRATION_V2_WS_METHODS.dispatchCommand]: (command) =>
           Effect.annotateCurrentSpan({
             "orchestration_v2.command_id": command.commandId,

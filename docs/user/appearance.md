@@ -5,6 +5,10 @@ appearance or stay in light or dark mode. To use different themes for light and 
 the corresponding preview within each theme. Appearance preferences are saved separately on each
 device or browser.
 
+Until you choose a theme, web and desktop use **Ilos**, following the system appearance. Ilos sets
+text in Creato Display and names, counts, times, and shortcuts in Natural Mono. A font you choose
+under **Typography** replaces these. To return to the previous look, choose the **T3 Code** theme.
+
 On web and desktop, use **Change theme** in the command palette to select a theme without leaving chat.
 Press **Cmd+Option+A** on macOS or **Ctrl+Alt+A** on Windows/Linux to open the theme picker directly.
 Use **Change appearance** in the command palette to choose System, Light, or Dark independently of
@@ -20,14 +24,6 @@ can be selected separately for light and dark appearances.
 Android uses **Material You Layout** by default unless you have turned it off in Appearance.
 It changes shapes, spacing, and controls independently
 of the selected theme.
-
-## Composer context
-
-Git-backed projects show branch and worktree controls below the composer while you create a thread.
-The controls retreat as the composer docks after you send the first message.
-
-Turn on **Composer context** to keep those controls visible after the thread starts. This preference
-applies to the web and desktop clients.
 
 ## Math
 

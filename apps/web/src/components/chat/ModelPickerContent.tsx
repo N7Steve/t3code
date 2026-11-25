@@ -72,6 +72,7 @@ import {
 } from "../../providerInstances";
 import { providerModelKey, sortProviderModelItems } from "../../modelOrdering";
 import { hasRuntimeModelCatalog } from "../../providerModels";
+import { providerGroupRepresentatives } from "./ProviderModelPicker.logic";
 
 type ModelPickerItem = {
   slug: string;
@@ -352,12 +353,12 @@ export const ModelPickerContent = memo(function ModelPickerContent(props: {
   onInstanceModelChange: (instanceId: ProviderInstanceId, model: string) => void;
   /** The owning popup moves focus here when it opens (its `initialFocus`). */
   searchInputRef: RefObject<HTMLInputElement | null>;
-  /** Sits beside an effort column: fills the shared row, and stacks above it on narrow screens. */
-  docked?: boolean;
-  /** Right at the end of the search text moves into the popup's effort column. */
-  onFocusEffort?: () => void;
-  /** Closes the list column, inside the popup's fixed height. */
-  listFooter?: ReactNode;
+  /**
+   * One rail entry and one set of search results per provider, not per account. The composer
+   * picks the account in its own control; settings pickers still list every instance.
+   */
+  groupAccounts?: boolean;
+  accountOnly?: boolean;
 }) {
   const gt = useGT();
   const messages = useMessages();
@@ -366,13 +367,16 @@ export const ModelPickerContent = memo(function ModelPickerContent(props: {
     searchInputRef,
     keybindings: providedKeybindings,
     modelOptionsByInstance,
-    instanceEntries,
+    instanceEntries: allInstanceEntries,
     getModelDisabledReason,
     onInstanceModelChange,
     onToggleModel,
     onRequestClose,
     onOpenProviderSetup,
   } = props;
+  const instanceEntries = props.accountOnly
+    ? allInstanceEntries.filter((entry) => entry.instanceId === props.activeInstanceId)
+    : allInstanceEntries;
   const [searchQuery, setSearchQuery] = useState("");
   const modelListRef = useRef<LegendListRef | null>(null);
   const pickerContentRef = useRef<HTMLDivElement>(null);
@@ -426,6 +430,7 @@ export const ModelPickerContent = memo(function ModelPickerContent(props: {
   const [selectedInstanceId, setSelectedInstanceId] = useState<ProviderInstanceId | "favorites">(
     () => {
       if (
+        props.accountOnly ||
         props.lockedProvider !== null ||
         activeInstanceHasSelectableUnavailableModel ||
         activeInstanceNeedsSetup
@@ -668,8 +673,19 @@ export const ModelPickerContent = memo(function ModelPickerContent(props: {
     }
     return disabled;
   })();
+  const groupedInstanceIds = props.groupAccounts
+    ? new Set(
+        providerGroupRepresentatives(instanceEntries, props.activeInstanceId).map(
+          (entry) => entry.instanceId,
+        ),
+      )
+    : null;
   const sidebarInstanceEntries = (() => {
-    const enabledEntries = instanceEntries.filter(isProviderInstancePickerVisible);
+    const enabledEntries = instanceEntries.filter(
+      (entry) =>
+        isProviderInstancePickerVisible(entry) &&
+        (groupedInstanceIds === null || groupedInstanceIds.has(entry.instanceId)),
+    );
     if (!isLocked) {
       return enabledEntries;
     }
@@ -684,15 +700,18 @@ export const ModelPickerContent = memo(function ModelPickerContent(props: {
     }
     return [...available, ...disabled];
   })();
-  const showSidebar = !isSearching && sidebarInstanceEntries.length > 0;
+  const showSidebar = !props.accountOnly && !isSearching && sidebarInstanceEntries.length > 0;
   const instanceOrder = instanceEntries.map((entry) => entry.instanceId);
 
   const filteredModels = (() => {
     let result = flatModels;
 
     if (searchQuery.trim()) {
-      const candidates =
-        lockedProvider !== null ? result.filter((m) => matchesLockedProvider(m)) : result;
+      const candidates = result.filter(
+        (m) =>
+          (lockedProvider === null || matchesLockedProvider(m)) &&
+          (groupedInstanceIds === null || groupedInstanceIds.has(m.instanceId)),
+      );
       return rankModelPickerSearch(candidates, searchQuery, (model) => ({
         name: model.name,
         ...(model.shortName ? { shortName: model.shortName } : {}),
@@ -939,19 +958,13 @@ export const ModelPickerContent = memo(function ModelPickerContent(props: {
       <WindowKeyDownListener onKeyDown={onWindowKeyDown} />
       <div
         ref={pickerContentRef}
-        className={cn(
-          "relative flex w-screen max-w-90 flex-row overflow-hidden",
-          props.docked ? "max-sm:h-56 max-sm:w-full max-sm:max-w-none" : "max-h-86.5",
-        )}
-        // Docked, the popup sets the height; a minimum here would overflow short windows.
+        className="relative flex max-h-86.5 w-screen max-w-90 flex-row overflow-hidden"
         style={
-          props.docked
-            ? undefined
-            : isSearching
-              ? { height: searchHeight }
-              : {
-                  minHeight: `min(calc(var(--spacing) * ${tallestTabUnits + LIST_CHROME_UNITS} + 1px), calc(var(--spacing) * 86.5))`,
-                }
+          isSearching
+            ? { height: searchHeight }
+            : {
+                minHeight: `min(calc(var(--spacing) * ${tallestTabUnits + LIST_CHROME_UNITS} + 1px), calc(var(--spacing) * 86.5))`,
+              }
         }
         data-model-picker-content="true"
       >
@@ -1070,29 +1083,6 @@ export const ModelPickerContent = memo(function ModelPickerContent(props: {
                   onRequestClose?.();
                   return;
                 }
-                if (
-                  props.onFocusEffort &&
-                  e.key === "ArrowRight" &&
-                  !e.altKey &&
-                  !e.ctrlKey &&
-                  !e.metaKey &&
-                  !e.shiftKey &&
-                  e.currentTarget.selectionStart === searchQuery.length
-                ) {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  // The column shows the selected model's effort, so a highlighted model is picked
-                  // first; the owning popup then moves focus to that model's levels.
-                  const highlighted = highlightedModelKeyRef.current
-                    ? parseModelPickerModelKey(highlightedModelKeyRef.current)
-                    : null;
-                  const pickedNew =
-                    highlighted !== null &&
-                    highlightedModelKeyRef.current !== activeModelKey &&
-                    handleModelSelect(highlighted.slug, highlighted.instanceId) !== null;
-                  if (!pickedNew) props.onFocusEffort();
-                  return;
-                }
                 if (e.key === "Enter" && highlightedModelKeyRef.current) {
                   (e as typeof e & { preventBaseUIHandler?: () => void }).preventBaseUIHandler?.();
                   e.preventDefault();
@@ -1209,7 +1199,11 @@ export const ModelPickerContent = memo(function ModelPickerContent(props: {
                         : modelKey === activeModelKey
                     }
                     favoriteStarOnHover={selectedInstanceId === "favorites" && !isSearching}
-                    showInstanceBadge={badgedInstanceIds.has(model.instanceId)}
+                    showInstanceBadge={
+                      !props.accountOnly &&
+                      (!props.groupAccounts || selectedInstanceId === "favorites") &&
+                      badgedInstanceIds.has(model.instanceId)
+                    }
                     showNewBadge={model.badge === "new"}
                     unavailable={model.isUnavailable === true}
                     jumpLabel={modelJumpLabelByKey.get(modelKey) ?? null}
@@ -1232,7 +1226,6 @@ export const ModelPickerContent = memo(function ModelPickerContent(props: {
               onRequestClose={onRequestClose}
               onOpenProviderSetup={onOpenProviderSetup}
             />
-            {props.listFooter}
           </div>
         </Combobox>
       </div>

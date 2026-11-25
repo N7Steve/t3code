@@ -1633,7 +1633,6 @@
     "\""
   ],
   "b77a2b4d9abda043": "Workspace",
-  "656e5640ed1b3e70": "Adicionar a outra máquina",
   "3b4ca180fef92e21": "Insight",
   "cc8cdd1ece34cd75": "Nota",
   "19842b180a7e5a5f": "Dica",
@@ -1878,7 +1877,6 @@
   "9c6962c66efa5668": "Mudar aparência",
   "074c1660aac1c7cf": "Alternar editor de temas",
   "02c340f8d0bb7649": "Atual",
-  "b8ec049821ce511c": "Permissões: {label}",
   "f0d4573b2e03e2a7": "Permissões",
   "38695f22426981d6": "Pré-visualizar {path}",
   "7af7f00b85cc2930": "Confirmar ação",
@@ -3476,7 +3474,6 @@
     },
     " com um prompt no editor de mensagens para guardá-lo."
   ],
-  "cde2a4fd18e27557": "{count, plural, one {{count} conta} other {{count} contas}}",
   "d6ada5ec242e37ff": "Limites de uso",
   "faeebf9714efe741": "Dispensar limites de uso",
   "3bd78e8fcb75cb71": "Usando {model}",
@@ -4106,7 +4103,6 @@
   "ee3ae58c8b38a425": "{left}% restante",
   "ebb26f93fb83a71b": "{label}: {left}% restante",
   "1b16346722b65812": "{timeLeft}% da janela restante",
-  "728c6cc1431e76c8": "Renova em {duration} · {time}",
   "e16b0b9b490c8bc7": "{label}: {value}",
   "ba67d0a9ff5dabf0": "A API da área de transferência não está disponível ao copiar o pedido para o administrador.",
   "aef4bec20e799aab": "Falha ao copiar o pedido para o administrador para a área de transferência.",
@@ -7404,9 +7400,6 @@
   "cda243654f5bf0a7": "Redefinir as animações do painel para o padrão",
   "c5e730293c781df4": "Redefinir a identificação do ambiente para o padrão",
   "11385321578620f5": "Identificação do ambiente",
-  "c9f0ae0132e5debb": "Mantém os controles de branch e worktree abaixo do editor de mensagens depois que a thread começa.",
-  "997a837b4d1a3c62": "Redefinir o contexto do editor de mensagens para o padrão",
-  "170455e28b72bdb0": "Manter o contexto do editor de mensagens visível nas threads ativas",
   "8e944f7583a727fd": "Desarquivar",
   "9e4e731164d1d283": "Desarquivar {title}",
   "8e4a82fb94d107bb": "Falha ao desarquivar a thread",
@@ -9783,7 +9776,6 @@
   "20e3a8aab5f9426a": "Adiar até os limites serem redefinidos",
   "beef8e501e1ac466": "Opções de adiamento",
   "81cf438219f0a618": "Quebra de linha",
-  "8dc3e3036cfebeaa": "Contexto do editor de mensagens",
   "95be9d8739887c7f": "Estado padrão dos arquivos no diff",
   "04fb467bba7698e2": "Alterações de espaço em branco no diff",
   "71d047b3f6ea9497": "Abrir os painéis de pull requests e alterações proativamente",
@@ -12195,5 +12187,160 @@
   "27d76249d09eb69f": "Guia de revisão pronto",
   "faa3bb26abb39c93": "O guia de revisão falhou",
   "b7df38b7d8792d78": "Abrir guia",
-  "9e91e9a77b664e4e": "Não foi possível iniciar um guia de revisão"
+  "9e91e9a77b664e4e": "Não foi possível iniciar um guia de revisão",
+  "6c9ed07f13dddfe5": "Contexto de execução",
+  "42a10914a52b31f9": "Inicie uma nova conversa para usar esta conta.",
+  "bc17c559cc1c6db6": "Desativada nas configurações.",
+  "6c9e430455c4782a": "Sessão encerrada.",
+  "52bfffb55dfdee37": "Indisponível no momento.",
+  "4bdb8991360bd937": "Conta",
+  "b65d7484135ef07a": "Conta: {account}",
+  "5142b3a21348886f": "Entrada",
+  "3b03d371843eb803": "Raciocínio",
+  "90dd3d135e4f0801": "O uso do contexto aparece quando o provedor informa a contagem de tokens.",
+  "8f3889069b27fd26": "Nenhum modelo disponível",
+  "5cc1931ba63bba2d": "Raciocínio: {level}",
+  "8a6eab3f3861e726": "Projeto",
+  "7febc4eec0cc09f5": "Globais",
+  "e45aa94eb19a4bb8": "Anexar skill",
+  "bdf6c42581fca429": "Pesquisar skills",
+  "8083c1de4314967b": "Anexar skill",
+  "16d2f0c5a8c262a3": "Nenhuma skill corresponde.",
+  "a4a9ebf428fb8071": "Limites de uso: {summary}",
+  "53f989bf9e3706a3": "MCP e skills",
+  "c6f89adcb58f81c4": "Visualização de MCP e skills",
+  "bd77a677588c9bf8": "Recarregar dos arquivos de configuração",
+  "842d3feda8a69f50": "Não foi possível interpretar o arquivo de configuração desta CLI.",
+  "4c1fac81d8fc1de7": "Esta CLI não consegue executar este tipo de servidor.",
+  "c5b834b12cdc5bd5": "CLI de origem",
+  "36996e84011eec18": "Variáveis de ambiente",
+  "1ca7005f4bc28d9b": "Transporte",
+  "f045efc0656c1a9f": "Valor",
+  "3497467a66f27354": "Escolha um arquivo ZIP de até 8 MB.",
+  "a39f1002731b0aa7": "Não foi possível ler o arquivo ZIP.",
+  "9230760c4f8e101c": "Abrir a pasta de {name}",
+  "59622c6e7c00217a": "Arquivos de configuração",
+  "3cedd411dffdbffd": "Abrir {file}",
+  "0a65572baf751910": "Conecte um ambiente para gerenciar os servidores MCP e as skills dos agentes dele.",
+  "d11beda88dc3fc1a": "Servidores MCP",
+  "d078c1ffc2f0e313": "Conectores",
+  "4ebad3a0708124a9": "Skills",
+  "ebf33274ee2bbd52": "Plug-ins",
+  "f36e508582ebf66f": "Importar ZIP",
+  "02fa57512dc205c2": "Adicionar conector",
+  "27b44316eab62b46": "Adicionar servidor",
+  "59c9dbd444b7d5a8": [
+    "Edita os arquivos de configuração de cada CLI em ",
+    {
+      "i": 1,
+      "k": "_gt_value_1",
+      "v": "v"
+    },
+    ", mantendo um backup ao lado de cada arquivo alterado."
+  ],
+  "e14287766de667d3": "Ainda não há conectores. Conectores são servidores MCP remotos acessados por URL.",
+  "93bcb77ea4a0e3d6": "Ainda não há servidores MCP nos arquivos de configuração destas CLIs.",
+  "cc9e559b8467818c": "Difere entre as CLIs",
+  "4fdd42d22bb00137": "Sincronizar CLIs",
+  "d665b8b44815893e": "Arquivos ausentes",
+  "8a47d92193c72e88": "Reparar MCP",
+  "c58692771f892763": [
+    "Ele é removido do arquivo de configuração de cada CLI em ",
+    {
+      "i": 1,
+      "k": "_gt_value_1",
+      "v": "v"
+    },
+    " e desta lista. Um backup de cada arquivo alterado fica ao lado dele."
+  ],
+  "4293ac6eb6df80c9": [
+    "Sincronizar ",
+    {
+      "i": 1,
+      "k": "_gt_value_1",
+      "v": "v"
+    }
+  ],
+  "4b01d6f2f04739e7": "Escolha a configuração que será copiada para as outras CLIs em que este servidor está ativado.",
+  "57f80ed903bdae98": "Algumas CLIs ativadas não oferecem suporte a esse tipo de servidor.",
+  "3497006bea63a937": [
+    "Reparar ",
+    {
+      "i": 1,
+      "k": "_gt_value_1",
+      "v": "v"
+    }
+  ],
+  "a2b77bab81b973e6": "Esses caminhos não existem mais, então o servidor não consegue iniciar. O reparo aponta cada um para a instalação mais recente ao lado que tenha os mesmos arquivos e não altera mais nada. Um backup de cada arquivo alterado fica ao lado dele.",
+  "5b3735789f004052": "Não encontrado no PATH deste ambiente. Instale-o ou edite o servidor.",
+  "ffa28738ce8a026a": "Nenhuma substituição encontrada. Reinstale o que ele executa ou edite o servidor.",
+  "a2a483fc62d323c8": "Se outro app gravar esta entrada, como uma CLI que registra seus próprios servidores, ele pode substituir o reparo na próxima vez que for executado.",
+  "0b916d8ecea93b04": [
+    "Editar ",
+    {
+      "i": 1,
+      "k": "_gt_value_1",
+      "v": "v"
+    }
+  ],
+  "49b0954635da3999": "Adicionar um servidor MCP",
+  "9dace4fd5e3b3131": [
+    "Salvo nos arquivos de configuração das CLIs que você ativar, em ",
+    {
+      "i": 1,
+      "k": "_gt_value_1",
+      "v": "v"
+    },
+    "."
+  ],
+  "4b38d6d240fa28ea": "Argumentos, um por linha",
+  "7e8dcfd9a1b15059": "Diretório de trabalho (opcional, apenas Codex e Cursor)",
+  "c9ecf66bcd100d79": "Adicionar cabeçalho",
+  "0bc5b6aebd06a1c3": "Ativar para",
+  "2de12f628b232dfc": "Ainda não há skills nas pastas de skills destas CLIs.",
+  "c2012eda0b042861": "Nenhuma skill corresponde.",
+  "d85c7d650bc14573": "Importar plug-in do Codex",
+  "c171a21fd7962e73": "Envie o ZIP de um plug-in e escolha os perfis do Codex em que deseja ativá-lo.",
+  "ebfba3aeb2d992ec": "Arquivo ZIP",
+  "fd6708ef9b4f5945": "Atualize o ambiente para gerenciar plug-ins.",
+  "fbc491b69ebc262e": "Nenhum plug-in personalizado importado.",
+  "30fd06179b8f6b2e": [
+    "Excluir ",
+    {
+      "i": 1,
+      "k": "_gt_value_1",
+      "v": "v"
+    },
+    "?"
+  ],
+  "e1e6255d6b268c43": "O plug-in será desinstalado do Codex e removido da biblioteca deste ambiente.",
+  "aba29e77e52bca46": "Excluir",
+  "2155733416961577": "Desativada em todas",
+  "39ecf63ac4e8130e": [
+    "A pasta dela é excluída de todas as CLIs em ",
+    {
+      "i": 1,
+      "k": "_gt_value_1",
+      "v": "v"
+    },
+    ". Para mantê-la sem que os agentes a usem, desative-a."
+  ],
+  "d2d5fd77b6650f01": "Não foi possível interpretar",
+  "a23263edac3e0b9a": [
+    "Ainda não gerenciados aqui: ",
+    {
+      "i": 1,
+      "k": "_gt_value_1",
+      "v": "v"
+    },
+    "."
+  ],
+  "724baefb1716842b": "Servidores MCP",
+  "94f2014d29cda8c0": "mcp model context protocol ferramentas servidores comando configuração ativar desativar sincronizar claude code codex cursor opencode config.toml claude.json mcp.json",
+  "43897f5bc2c1e321": "Conectores",
+  "010d72b314d5c9e0": "remoto mcp http sse url cabeçalhos conector",
+  "3461dd8197975295": "skill.md agente skills copiar ativar desativar claude codex cursor opencode",
+  "c1b7649ac731ed07": "Plug-ins",
+  "448ee86cd1e89e6a": "plug-in personalizado codex importar enviar zip catálogo marketplace",
+  "6ef3183340983c85": "Reordenar projeto {project}"
 }

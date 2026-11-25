@@ -3155,8 +3155,6 @@
   "6260957e1c0f4a2e": "Carpeta de configuración predeterminada",
   "7739e6c3c4f6542f": "Opciones de {account}",
   "64a3a85877084661": "Añadir cuenta de {provider}",
-  "9292402075476a7e": "Usa una carpeta de configuración de {provider} que ya tenga la sesión iniciada en este servidor.",
-  "a71cc469bb7e59fb": "Apunta a una carpeta {variable} en {environment} donde {product} ya tenga la sesión iniciada. Inicia sesión allí primero con la {cli}.",
   "0d1ce708baadceec": "Nombre de la cuenta",
   "36e0fb3ace20aa56": "Nombre, p. ej., Trabajo",
   "d0175cb5f97c9735": "Carpeta de configuración de {provider}",

@@ -13,7 +13,7 @@ import {
   type ServerProvider,
 } from "@t3tools/contracts";
 import { useAtomValue } from "@effect/atom-react";
-import { useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { Pressable, ScrollView, TextInput, useWindowDimensions, View } from "react-native";
 import { tryOpenExternalUrl } from "../../lib/openExternalUrl";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -94,11 +94,10 @@ function EnvironmentProviders({
   readonly environment: SettingsTarget;
   readonly providers: ReadonlyArray<ServerProvider>;
 }) {
-  const accounts = providers.filter(canManageProvider);
-  // Claude has no in-app sign-in; each account is its own instance on a signed-in config folder.
-  const claudeAccounts = providers.filter(
-    (provider) => provider.driver === CLAUDE_DRIVER && !canManageProvider(provider),
+  const accounts = providers.filter(
+    (provider) => provider.driver !== CLAUDE_DRIVER && canManageProvider(provider),
   );
+  const claudeAccounts = providers.filter((provider) => provider.driver === CLAUDE_DRIVER);
   const canAddClaude = isManagedDriverAllowed(
     environment.serverConfig.managedPolicy,
     CLAUDE_DRIVER,
@@ -113,13 +112,30 @@ function EnvironmentProviders({
           divider={index > 0}
         />
       ))}
-      {accounts.length === 0 ? (
+      {accounts.length === 0 && !claudeAccounts.some(canManageProvider) ? (
         <Text className="p-4 text-foreground-muted">
           <T>Configure a provider with in-app sign-in in web or desktop Settings.</T>
         </Text>
       ) : null}
       {claudeAccounts.map((provider) => (
-        <ClaudeAccount key={provider.instanceId} environment={environment} provider={provider} />
+        <ClaudeAccount
+          key={provider.instanceId}
+          environment={environment}
+          provider={provider}
+          renderAccount={
+            canManageProvider(provider)
+              ? (actions, configFolder) => (
+                  <ProviderAccount
+                    environment={environment}
+                    provider={provider}
+                    divider={false}
+                    extraActions={actions}
+                    accountDetail={configFolder}
+                  />
+                )
+              : undefined
+          }
+        />
       ))}
       {canAddClaude ? <AddClaudeAccount environment={environment} /> : null}
     </>
@@ -146,10 +162,14 @@ function ProviderAccount({
   environment,
   provider,
   divider,
+  extraActions,
+  accountDetail,
 }: {
   readonly environment: SettingsTarget;
   readonly provider: ServerProvider;
   readonly divider: boolean;
+  readonly extraActions?: ReactNode;
+  readonly accountDetail?: string;
 }) {
   const gt = useGT();
   const environmentId = environment.environmentId;
@@ -436,8 +456,14 @@ function ProviderAccount({
             : "min-h-16 flex-row items-center gap-3 px-4 py-3"
         }
       >
-        <ProviderAccountSummary key={email} name={name} status={status} email={email} />
+        <ProviderAccountSummary
+          key={email}
+          name={name}
+          status={accountDetail ? [status, accountDetail].filter(Boolean).join(" · ") : status}
+          email={email}
+        />
         {trailing}
+        {!active ? extraActions : null}
       </View>
       {interaction?.type === "deviceCode" ||
       interaction?.type === "terminal" ||

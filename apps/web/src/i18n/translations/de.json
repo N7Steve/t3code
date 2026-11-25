@@ -1632,7 +1632,6 @@
     "“ erstellen"
   ],
   "b77a2b4d9abda043": "Arbeitsbereich",
-  "656e5640ed1b3e70": "Zu einem anderen Rechner hinzufügen",
   "3b4ca180fef92e21": "Erkenntnis",
   "cc8cdd1ece34cd75": "Hinweis",
   "19842b180a7e5a5f": "Tipp",
@@ -1877,7 +1876,6 @@
   "9c6962c66efa5668": "Darstellung ändern",
   "074c1660aac1c7cf": "Design-Editor umschalten",
   "02c340f8d0bb7649": "Aktuell",
-  "b8ec049821ce511c": "Berechtigungen: {label}",
   "f0d4573b2e03e2a7": "Berechtigungen",
   "38695f22426981d6": "Vorschau von {path}",
   "7af7f00b85cc2930": "Aktion bestätigen",
@@ -3477,7 +3475,6 @@
     },
     " mit einem Prompt im Eingabefeld, um ihn abzulegen."
   ],
-  "cde2a4fd18e27557": "{count, plural, one {{count} Konto} other {{count} Konten}}",
   "d6ada5ec242e37ff": "Nutzungslimits",
   "faeebf9714efe741": "Nutzungslimits ausblenden",
   "3bd78e8fcb75cb71": "Verwendet {model}",
@@ -4109,7 +4106,6 @@
   "ee3ae58c8b38a425": "{left} % übrig",
   "ebb26f93fb83a71b": "{label}: {left} % übrig",
   "1b16346722b65812": "{timeLeft} % des Zeitfensters übrig",
-  "728c6cc1431e76c8": "Wird in {duration} zurückgesetzt · {time}",
   "e16b0b9b490c8bc7": "{label}: {value}",
   "ba67d0a9ff5dabf0": "Die Zwischenablage-API ist beim Kopieren der Admin-Anfrage nicht verfügbar.",
   "aef4bec20e799aab": "Die Admin-Anfrage konnte nicht in die Zwischenablage kopiert werden.",
@@ -7403,9 +7399,6 @@
   "cda243654f5bf0a7": "Panel-Animationen auf Standard zurücksetzen",
   "c5e730293c781df4": "Umgebungskennzeichnung auf Standard zurücksetzen",
   "11385321578620f5": "Umgebungskennzeichnung",
-  "c9f0ae0132e5debb": "Branch- und Worktree-Steuerelemente nach dem Start eines Threads unter dem Eingabefeld behalten.",
-  "997a837b4d1a3c62": "Kontext im Eingabefeld auf Standard zurücksetzen",
-  "170455e28b72bdb0": "Kontext des Eingabefelds in aktiven Threads sichtbar halten",
   "8e944f7583a727fd": "Aus dem Archiv holen",
   "9e4e731164d1d283": "{title} aus dem Archiv holen",
   "8e4a82fb94d107bb": "Thread konnte nicht aus dem Archiv geholt werden",
@@ -9785,7 +9778,6 @@
   "20e3a8aab5f9426a": "Bis zum Zurücksetzen der Limits zurückstellen",
   "beef8e501e1ac466": "Optionen zum Zurückstellen",
   "81cf438219f0a618": "Zeilenumbruch",
-  "8dc3e3036cfebeaa": "Kontext im Eingabefeld",
   "95be9d8739887c7f": "Standardzustand von Diff-Dateien",
   "04fb467bba7698e2": "Leerzeichenänderungen im Diff",
   "71d047b3f6ea9497": "Pull-Request- und Änderungs-Panels proaktiv öffnen",
@@ -12196,5 +12188,159 @@
   "27d76249d09eb69f": "Review-Leitfaden bereit",
   "faa3bb26abb39c93": "Review-Leitfaden fehlgeschlagen",
   "b7df38b7d8792d78": "Leitfaden öffnen",
-  "9e91e9a77b664e4e": "Review-Leitfaden konnte nicht gestartet werden"
+  "9e91e9a77b664e4e": "Review-Leitfaden konnte nicht gestartet werden",
+  "6c9ed07f13dddfe5": "Ausführungskontext",
+  "42a10914a52b31f9": "Starte einen neuen Thread, um dieses Konto zu verwenden.",
+  "bc17c559cc1c6db6": "In den Einstellungen deaktiviert.",
+  "6c9e430455c4782a": "Abgemeldet.",
+  "52bfffb55dfdee37": "Derzeit nicht verfügbar.",
+  "4bdb8991360bd937": "Konto",
+  "b65d7484135ef07a": "Konto: {account}",
+  "5142b3a21348886f": "Eingabe",
+  "3b03d371843eb803": "Denkaufwand",
+  "90dd3d135e4f0801": "Die Kontextnutzung erscheint, sobald der Anbieter Tokenzahlen meldet.",
+  "8f3889069b27fd26": "Keine Modelle verfügbar",
+  "5cc1931ba63bba2d": "Denkaufwand: {level}",
+  "8a6eab3f3861e726": "Projekt",
+  "7febc4eec0cc09f5": "Global",
+  "e45aa94eb19a4bb8": "Skill anhängen",
+  "bdf6c42581fca429": "Skills durchsuchen",
+  "8083c1de4314967b": "Skill anhängen",
+  "16d2f0c5a8c262a3": "Keine passenden Skills.",
+  "a4a9ebf428fb8071": "Nutzungslimits: {summary}",
+  "53f989bf9e3706a3": "MCP & Skills",
+  "c6f89adcb58f81c4": "Ansicht für MCP & Skills",
+  "bd77a677588c9bf8": "Aus Konfigurationsdateien neu laden",
+  "842d3feda8a69f50": "Die Konfigurationsdatei dieser CLI konnte nicht gelesen werden.",
+  "4c1fac81d8fc1de7": "Diese CLI kann diese Art von Server nicht ausführen.",
+  "c5b834b12cdc5bd5": "Quell-CLI",
+  "36996e84011eec18": "Umgebungsvariablen",
+  "1ca7005f4bc28d9b": "Transport",
+  "f045efc0656c1a9f": "Wert",
+  "3497467a66f27354": "Wähle eine ZIP-Datei mit bis zu 8 MB.",
+  "a39f1002731b0aa7": "Die ZIP-Datei konnte nicht gelesen werden.",
+  "9230760c4f8e101c": "Ordner von {name} öffnen",
+  "59622c6e7c00217a": "Konfigurationsdateien",
+  "3cedd411dffdbffd": "{file} öffnen",
+  "0a65572baf751910": "Verbinde eine Umgebung, um die MCP-Server und Skills ihrer Agenten zu verwalten.",
+  "d11beda88dc3fc1a": "MCP-Server",
+  "d078c1ffc2f0e313": "Konnektoren",
+  "4ebad3a0708124a9": "Skills",
+  "ebf33274ee2bbd52": "Plugins",
+  "f36e508582ebf66f": "ZIP importieren",
+  "02fa57512dc205c2": "Konnektor hinzufügen",
+  "27b44316eab62b46": "Server hinzufügen",
+  "59c9dbd444b7d5a8": [
+    "Bearbeitet die Konfigurationsdateien jeder CLI auf ",
+    {
+      "i": 1,
+      "k": "_gt_value_1",
+      "v": "v"
+    },
+    " und legt neben jeder geänderten Datei ein Backup ab."
+  ],
+  "e14287766de667d3": "Noch keine Konnektoren. Konnektoren sind entfernte MCP-Server, die per URL erreicht werden.",
+  "93bcb77ea4a0e3d6": "Noch keine MCP-Server in den Konfigurationsdateien dieser CLIs.",
+  "cc9e559b8467818c": "Unterscheidet sich zwischen CLIs",
+  "4fdd42d22bb00137": "CLIs synchronisieren",
+  "d665b8b44815893e": "Fehlende Dateien",
+  "8a47d92193c72e88": "MCP reparieren",
+  "c58692771f892763": [
+    "Er wird aus der Konfigurationsdatei jeder CLI auf ",
+    {
+      "i": 1,
+      "k": "_gt_value_1",
+      "v": "v"
+    },
+    " und aus dieser Liste entfernt. Neben jeder geänderten Datei bleibt ein Backup."
+  ],
+  "4293ac6eb6df80c9": [
+    "Synchronisieren: ",
+    {
+      "i": 1,
+      "k": "_gt_value_1",
+      "v": "v"
+    }
+  ],
+  "4b01d6f2f04739e7": "Wähle die Konfiguration aus, die auf die anderen CLIs mit aktiviertem Server kopiert werden soll.",
+  "57f80ed903bdae98": "Einige aktivierte CLIs unterstützen diesen Servertyp nicht.",
+  "3497006bea63a937": [
+    {
+      "i": 1,
+      "k": "_gt_value_1",
+      "v": "v"
+    },
+    " reparieren"
+  ],
+  "a2b77bab81b973e6": "Diese Pfade existieren nicht mehr, daher kann der Server nicht starten. Eine Reparatur verweist jeden auf die neueste Installation daneben, die dieselben Dateien enthält, und ändert sonst nichts. Neben jeder geänderten Datei bleibt eine Sicherung.",
+  "5b3735789f004052": "Nicht im PATH dieser Umgebung gefunden. Installiere es oder bearbeite den Server.",
+  "ffa28738ce8a026a": "Kein Ersatz gefunden. Installiere neu, was er ausführt, oder bearbeite den Server.",
+  "a2a483fc62d323c8": "Wenn eine andere App diesen Eintrag schreibt, etwa eine CLI, die eigene Server registriert, kann sie die Reparatur beim nächsten Start ersetzen.",
+  "0b916d8ecea93b04": [
+    {
+      "i": 1,
+      "k": "_gt_value_1",
+      "v": "v"
+    },
+    " bearbeiten"
+  ],
+  "49b0954635da3999": "MCP-Server hinzufügen",
+  "9dace4fd5e3b3131": [
+    "Wird in den Konfigurationsdateien der aktivierten CLIs auf ",
+    {
+      "i": 1,
+      "k": "_gt_value_1",
+      "v": "v"
+    },
+    " gespeichert."
+  ],
+  "4b38d6d240fa28ea": "Argumente, eins pro Zeile",
+  "7e8dcfd9a1b15059": "Arbeitsverzeichnis (optional, nur Codex und Cursor)",
+  "c9ecf66bcd100d79": "Header hinzufügen",
+  "0bc5b6aebd06a1c3": "Aktivieren für",
+  "2de12f628b232dfc": "Noch keine Skills in den Skill-Ordnern dieser CLIs.",
+  "c2012eda0b042861": "Keine Skills passen.",
+  "d85c7d650bc14573": "Codex-Plugin importieren",
+  "c171a21fd7962e73": "Lade eine Plugin-ZIP hoch und wähle die Codex-Profile aus, in denen du das Plugin aktivieren möchtest.",
+  "ebfba3aeb2d992ec": "ZIP-Datei",
+  "fd6708ef9b4f5945": "Aktualisiere die Umgebung, um Plugins zu verwalten.",
+  "fbc491b69ebc262e": "Noch keine benutzerdefinierten Plugins importiert.",
+  "30fd06179b8f6b2e": [
+    {
+      "i": 1,
+      "k": "_gt_value_1",
+      "v": "v"
+    },
+    " löschen?"
+  ],
+  "e1e6255d6b268c43": "Das Plugin wird aus Codex deinstalliert und aus der Bibliothek dieser Umgebung entfernt.",
+  "aba29e77e52bca46": "Löschen",
+  "2155733416961577": "Überall aus",
+  "39ecf63ac4e8130e": [
+    "Sein Ordner wird aus jeder CLI auf ",
+    {
+      "i": 1,
+      "k": "_gt_value_1",
+      "v": "v"
+    },
+    " gelöscht. Um ihn zu behalten, aber nicht mehr zu verwenden, schalte ihn stattdessen aus."
+  ],
+  "d2d5fd77b6650f01": "Nicht lesbar",
+  "a23263edac3e0b9a": [
+    "Hier noch nicht verwaltet: ",
+    {
+      "i": 1,
+      "k": "_gt_value_1",
+      "v": "v"
+    },
+    "."
+  ],
+  "724baefb1716842b": "MCP-Server",
+  "94f2014d29cda8c0": "mcp model context protocol werkzeuge server befehl konfiguration aktivieren deaktivieren claude code codex cursor opencode config.toml claude.json mcp.json",
+  "43897f5bc2c1e321": "Konnektoren",
+  "010d72b314d5c9e0": "remote entfernt mcp http sse url header konnektor",
+  "3461dd8197975295": "skill.md agent skills kopieren aktivieren deaktivieren claude codex cursor opencode",
+  "c1b7649ac731ed07": "Plugins",
+  "448ee86cd1e89e6a": "benutzerdefiniert Plugin Codex importieren hochladen ZIP Marktplatz",
+  "6ef3183340983c85": "Projekt {project} verschieben"
 }

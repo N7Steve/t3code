@@ -138,6 +138,20 @@
       "sourceUrl": "https://github.com/ryanoasis/nerd-fonts"
     },
     {
+      "bundles": ["assets", "web"],
+      "license": "OFL-1.1",
+      "name": "Creato Display",
+      "noticeFile": "apps/web/src/fonts/ilos/CreatoDisplay-OFL.txt",
+      "sourceUrl": "https://www.dafont.com/creato-display.font"
+    },
+    {
+      "bundles": ["assets", "web"],
+      "license": "OFL-1.1",
+      "name": "Natural Mono",
+      "noticeFile": "apps/web/src/fonts/ilos/NaturalMono-OFL.txt",
+      "sourceUrl": "https://scripts.sil.org/OFL"
+    },
+    {
       "bundles": ["ios", "mobile"],
       "license": "MIT",
       "name": "GhosttyKit",

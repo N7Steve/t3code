@@ -1633,7 +1633,6 @@
     "”"
   ],
   "b77a2b4d9abda043": "Arbetsyta",
-  "656e5640ed1b3e70": "Lägg till på en annan dator",
   "3b4ca180fef92e21": "Insikt",
   "cc8cdd1ece34cd75": "Obs",
   "19842b180a7e5a5f": "Tips",
@@ -1878,7 +1877,6 @@
   "9c6962c66efa5668": "Ändra utseende",
   "074c1660aac1c7cf": "Växla temaredigerare",
   "02c340f8d0bb7649": "Aktuellt",
-  "b8ec049821ce511c": "Behörigheter: {label}",
   "f0d4573b2e03e2a7": "Behörigheter",
   "38695f22426981d6": "Förhandsvisa {path}",
   "7af7f00b85cc2930": "Bekräfta åtgärd",
@@ -3476,7 +3474,6 @@
     },
     " med en prompt i inmatningsfältet för att lägga undan den."
   ],
-  "cde2a4fd18e27557": "{count, plural, one {{count} konto} other {{count} konton}}",
   "d6ada5ec242e37ff": "Användningsgränser",
   "faeebf9714efe741": "Stäng användningsgränser",
   "3bd78e8fcb75cb71": "Använder {model}",
@@ -4107,7 +4104,6 @@
   "ee3ae58c8b38a425": "{left} % kvar",
   "ebb26f93fb83a71b": "{label}: {left} % kvar",
   "1b16346722b65812": "{timeLeft} % av fönstret kvar",
-  "728c6cc1431e76c8": "Återställs om {duration} · {time}",
   "e16b0b9b490c8bc7": "{label}: {value}",
   "ba67d0a9ff5dabf0": "Urklipps-API:t är inte tillgängligt vid kopiering av administratörsbegäran.",
   "aef4bec20e799aab": "Kunde inte kopiera administratörsbegäran till urklipp.",
@@ -7410,9 +7406,6 @@
   "cda243654f5bf0a7": "Återställ panelanimationer till standard",
   "c5e730293c781df4": "Återställ miljöidentifiering till standard",
   "11385321578620f5": "Miljöidentifiering",
-  "c9f0ae0132e5debb": "Behåll gren- och worktree-kontroller under inmatningsfältet efter att en tråd har startat.",
-  "997a837b4d1a3c62": "Återställ kontext i inmatningsfältet till standard",
-  "170455e28b72bdb0": "Håll inmatningsfältets kontext synlig i aktiva trådar",
   "8e944f7583a727fd": "Avarkivera",
   "9e4e731164d1d283": "Avarkivera {title}",
   "8e4a82fb94d107bb": "Det gick inte att avarkivera tråden",
@@ -9792,7 +9785,6 @@
   "20e3a8aab5f9426a": "Snooza tills gränserna återställs",
   "beef8e501e1ac466": "Snooze-alternativ",
   "81cf438219f0a618": "Radbrytning",
-  "8dc3e3036cfebeaa": "Kontext i inmatningsfältet",
   "95be9d8739887c7f": "Standardläge för filer i diffar",
   "04fb467bba7698e2": "Blankstegsändringar i diffar",
   "71d047b3f6ea9497": "Öppna panelerna för pull requests och ändringar proaktivt",
@@ -12203,5 +12195,160 @@
   "27d76249d09eb69f": "Granskningsguiden är klar",
   "faa3bb26abb39c93": "Granskningsguiden misslyckades",
   "b7df38b7d8792d78": "Öppna guiden",
-  "9e91e9a77b664e4e": "Kunde inte starta en granskningsguide"
+  "9e91e9a77b664e4e": "Kunde inte starta en granskningsguide",
+  "6c9ed07f13dddfe5": "Körningsmiljö",
+  "42a10914a52b31f9": "Starta en ny tråd för att använda det här kontot.",
+  "bc17c559cc1c6db6": "Inaktiverat i inställningarna.",
+  "6c9e430455c4782a": "Utloggad.",
+  "52bfffb55dfdee37": "Inte tillgängligt just nu.",
+  "4bdb8991360bd937": "Konto",
+  "b65d7484135ef07a": "Konto: {account}",
+  "5142b3a21348886f": "Indata",
+  "3b03d371843eb803": "Resonemang",
+  "90dd3d135e4f0801": "Kontextanvändningen visas när leverantören rapporterar antal token.",
+  "8f3889069b27fd26": "Inga modeller tillgängliga",
+  "5cc1931ba63bba2d": "Resonemang: {level}",
+  "8a6eab3f3861e726": "Projekt",
+  "7febc4eec0cc09f5": "Globala",
+  "e45aa94eb19a4bb8": "Bifoga färdighet",
+  "bdf6c42581fca429": "Sök färdigheter",
+  "8083c1de4314967b": "Bifoga färdighet",
+  "16d2f0c5a8c262a3": "Inga matchande färdigheter.",
+  "a4a9ebf428fb8071": "Användningsgränser: {summary}",
+  "53f989bf9e3706a3": "MCP och färdigheter",
+  "c6f89adcb58f81c4": "Vy för MCP och färdigheter",
+  "bd77a677588c9bf8": "Läs in igen från konfigurationsfilerna",
+  "842d3feda8a69f50": "Den här CLI:ns konfigurationsfil kunde inte tolkas.",
+  "4c1fac81d8fc1de7": "Den här CLI:n kan inte köra den här typen av server.",
+  "c5b834b12cdc5bd5": "Käll-CLI",
+  "36996e84011eec18": "Miljövariabler",
+  "1ca7005f4bc28d9b": "Transport",
+  "f045efc0656c1a9f": "Värde",
+  "3497467a66f27354": "Välj en ZIP-fil på högst 8 MB.",
+  "a39f1002731b0aa7": "Det gick inte att läsa ZIP-filen.",
+  "9230760c4f8e101c": "Öppna mappen för {name}",
+  "59622c6e7c00217a": "Konfigurationsfiler",
+  "3cedd411dffdbffd": "Öppna {file}",
+  "0a65572baf751910": "Anslut en miljö för att hantera dess agenters MCP-servrar och färdigheter.",
+  "d11beda88dc3fc1a": "MCP-servrar",
+  "d078c1ffc2f0e313": "Anslutningar",
+  "4ebad3a0708124a9": "Färdigheter",
+  "ebf33274ee2bbd52": "Tillägg",
+  "f36e508582ebf66f": "Importera ZIP",
+  "02fa57512dc205c2": "Lägg till anslutning",
+  "27b44316eab62b46": "Lägg till server",
+  "59c9dbd444b7d5a8": [
+    "Redigerar varje CLI:s egna konfigurationsfiler på ",
+    {
+      "i": 1,
+      "k": "_gt_value_1",
+      "v": "v"
+    },
+    " och sparar en säkerhetskopia bredvid varje fil som ändras."
+  ],
+  "e14287766de667d3": "Inga anslutningar ännu. Anslutningar är fjärranslutna MCP-servrar som nås via URL.",
+  "93bcb77ea4a0e3d6": "Inga MCP-servrar i de här CLI:ernas konfigurationsfiler ännu.",
+  "cc9e559b8467818c": "Skiljer sig mellan CLI:er",
+  "4fdd42d22bb00137": "Synkronisera CLI:er",
+  "d665b8b44815893e": "Filer saknas",
+  "8a47d92193c72e88": "Reparera MCP",
+  "c58692771f892763": [
+    "Den tas bort från varje CLI:s konfigurationsfil på ",
+    {
+      "i": 1,
+      "k": "_gt_value_1",
+      "v": "v"
+    },
+    " och från den här listan. En säkerhetskopia av varje ändrad fil ligger kvar bredvid."
+  ],
+  "4293ac6eb6df80c9": [
+    "Synkronisera ",
+    {
+      "i": 1,
+      "k": "_gt_value_1",
+      "v": "v"
+    }
+  ],
+  "4b01d6f2f04739e7": "Välj konfigurationen som ska kopieras till övriga CLI:er där servern är aktiverad.",
+  "57f80ed903bdae98": "Vissa aktiverade CLI:er stöder inte den här typen av server.",
+  "3497006bea63a937": [
+    "Reparera ",
+    {
+      "i": 1,
+      "k": "_gt_value_1",
+      "v": "v"
+    }
+  ],
+  "a2b77bab81b973e6": "De här sökvägarna finns inte längre, så servern kan inte starta. En reparation pekar varje sökväg på den nyaste installationen bredvid som har samma filer och ändrar inget annat. En säkerhetskopia av varje ändrad fil sparas bredvid den.",
+  "5b3735789f004052": "Hittades inte i den här miljöns PATH. Installera det eller redigera servern.",
+  "ffa28738ce8a026a": "Ingen ersättning hittades. Installera om det den kör eller redigera servern.",
+  "a2a483fc62d323c8": "Om en annan app skriver den här posten, till exempel en CLI som registrerar egna servrar, kan den ersätta reparationen nästa gång den körs.",
+  "0b916d8ecea93b04": [
+    "Redigera ",
+    {
+      "i": 1,
+      "k": "_gt_value_1",
+      "v": "v"
+    }
+  ],
+  "49b0954635da3999": "Lägg till en MCP-server",
+  "9dace4fd5e3b3131": [
+    "Sparas i konfigurationsfilerna för de CLI:er du slår på, på ",
+    {
+      "i": 1,
+      "k": "_gt_value_1",
+      "v": "v"
+    },
+    "."
+  ],
+  "4b38d6d240fa28ea": "Argument, ett per rad",
+  "7e8dcfd9a1b15059": "Arbetskatalog (valfritt, endast Codex och Cursor)",
+  "c9ecf66bcd100d79": "Lägg till header",
+  "0bc5b6aebd06a1c3": "Slå på för",
+  "2de12f628b232dfc": "Inga färdigheter i de här CLI:ernas färdighetsmappar ännu.",
+  "c2012eda0b042861": "Inga färdigheter matchar.",
+  "d85c7d650bc14573": "Importera Codex-tillägg",
+  "c171a21fd7962e73": "Ladda upp ett ZIP-paket och välj vilka Codex-profiler tillägget ska aktiveras i.",
+  "ebfba3aeb2d992ec": "ZIP-fil",
+  "fd6708ef9b4f5945": "Uppdatera miljön för att hantera tillägg.",
+  "fbc491b69ebc262e": "Inga anpassade tillägg har importerats.",
+  "30fd06179b8f6b2e": [
+    "Ta bort ",
+    {
+      "i": 1,
+      "k": "_gt_value_1",
+      "v": "v"
+    },
+    "?"
+  ],
+  "e1e6255d6b268c43": "Tillägget avinstalleras från Codex och tas bort från miljöns bibliotek.",
+  "aba29e77e52bca46": "Ta bort",
+  "2155733416961577": "Av överallt",
+  "39ecf63ac4e8130e": [
+    "Dess mapp tas bort från varje CLI på ",
+    {
+      "i": 1,
+      "k": "_gt_value_1",
+      "v": "v"
+    },
+    ". Stäng av den i stället om du vill behålla den men hindra agenter från att använda den."
+  ],
+  "d2d5fd77b6650f01": "Kunde inte tolkas",
+  "a23263edac3e0b9a": [
+    "Hanteras inte här ännu: ",
+    {
+      "i": 1,
+      "k": "_gt_value_1",
+      "v": "v"
+    },
+    "."
+  ],
+  "724baefb1716842b": "MCP-servrar",
+  "94f2014d29cda8c0": "mcp model context protocol verktyg servrar kommando konfiguration aktivera inaktivera synkronisera claude code codex cursor opencode config.toml claude.json mcp.json",
+  "43897f5bc2c1e321": "Anslutningar",
+  "010d72b314d5c9e0": "fjärr mcp http sse url headers anslutning",
+  "3461dd8197975295": "skill.md agent färdigheter kopiera aktivera inaktivera claude codex cursor opencode",
+  "c1b7649ac731ed07": "Tillägg",
+  "448ee86cd1e89e6a": "anpassat tillägg codex importera ladda upp zip marknadsplats",
+  "6ef3183340983c85": "Ändra ordning för projektet {project}"
 }

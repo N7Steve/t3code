@@ -5,6 +5,7 @@ import { ProviderInstanceIcon } from "../chat/ProviderInstanceIcon";
 import { Radio as RadioPrimitive } from "@base-ui/react/radio";
 import { CheckIcon, ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
+import { useAtomValue } from "@effect/atom-react";
 import { msg, T, useGT, useMessages, Var } from "gt-react";
 import type { MessageResolver } from "../../i18n/messages";
 import {
@@ -33,6 +34,7 @@ import { cn } from "../../lib/utils";
 import { normalizeProviderAccentColor } from "../../providerInstances";
 import { managedInstanceLocks, useManagedPolicy } from "../../state/managedPolicy";
 import { readEnvironmentScope, useEnvironmentScope } from "../../state/session";
+import { providersIgnoringCheckedAtAtom } from "../../state/server";
 import { Button } from "../ui/button";
 import { ChatGptConnectionButton } from "./ChatGptConnectionButton";
 import { Dialog } from "../ui/dialog";
@@ -51,6 +53,7 @@ import {
   ADD_PROVIDER_WIZARD_STEPS,
   ACP_REGISTRY_WIZARD_STEPS,
   LOCAL_ACP_WIZARD_STEPS,
+  SIGN_IN_WIZARD_STEP,
   resolveAcpRegistryWizardNavigation,
   resolveWizardNavigation,
   updateProviderIdentityDraft,
@@ -166,6 +169,7 @@ export function AddProviderInstanceDialog({
   const gt = useGT();
   const m = useMessages();
   const settings = useEnvironmentSettings(environmentId);
+  const providers = useAtomValue(providersIgnoringCheckedAtAtom(environmentId));
   const secretSources = useSecretSources(environmentId);
   const persistProviderInstance = usePersistEnvironmentProviderInstanceMutation(environmentId);
   const canManageProviders = useEnvironmentScope(environmentId, AuthProvidersManageScope);
@@ -244,6 +248,18 @@ export function AddProviderInstanceDialog({
 
   const configDraft = configByDriver[driver] ?? EMPTY_CONFIG_DRAFT;
   const isLocalAcp = isAcpRegistry && isManualAcpConfiguration && configDraft.source === "local";
+  const signInAfterSave =
+    (isAcpRegistry && !isLocalAcp) ||
+    driver === "claudeAgent" ||
+    (driver !== "codex" &&
+      providers?.some((provider) => provider.driver === driver && provider.setup?.canAuthenticate));
+  const steps = isAcpRegistry
+    ? isLocalAcp
+      ? LOCAL_ACP_WIZARD_STEPS
+      : ACP_REGISTRY_WIZARD_STEPS
+    : signInAfterSave
+      ? [...ADD_PROVIDER_WIZARD_STEPS, SIGN_IN_WIZARD_STEP]
+      : ADD_PROVIDER_WIZARD_STEPS;
   const localCommandPath =
     typeof configDraft.commandPath === "string" ? configDraft.commandPath.trim() : "";
   const manualAgentId = typeof configDraft.agentId === "string" ? configDraft.agentId.trim() : "";
@@ -254,13 +270,16 @@ export function AddProviderInstanceDialog({
     : selectedAcp !== null || (isManualAcpConfiguration && manualAgentId.length > 0)
       ? null
       : gt("Select an ACP or configure one manually.");
-  const wizardStepSummaries = isAcpRegistry
-    ? ([
-        isLocalAcp ? gt("Local ACP command") : (selectedAcp?.name ?? (manualAgentId || null)),
-        previewLabel,
-        null,
-      ] as const)
-    : ([driverOption.label, previewLabel, null] as const);
+  const wizardStepSummaries = [
+    isAcpRegistry
+      ? isLocalAcp
+        ? gt("Local ACP command")
+        : (selectedAcp?.name ?? (manualAgentId || null))
+      : driverOption.label,
+    previewLabel,
+    null,
+    null,
+  ];
   const setConfigDraft = (config: Record<string, unknown> | undefined) => {
     setConfigByDriver((existing) => {
       const next = { ...existing };
@@ -289,7 +308,7 @@ export function AddProviderInstanceDialog({
     if (navigation.kind === "blocked") {
       setHasAttemptedSubmit(true);
     }
-    if (isAcpRegistry && !isLocalAcp && navigation.kind === "navigate" && navigation.step === 2) {
+    if (signInAfterSave && navigation.kind === "navigate" && navigation.step === steps.length - 1) {
       void handleSave();
       return;
     }
@@ -300,7 +319,7 @@ export function AddProviderInstanceDialog({
     applyWizardNavigation(
       isAcpRegistry
         ? isLocalAcp
-          ? resolveWizardNavigation(wizardStep, requestedStep, LOCAL_ACP_WIZARD_STEPS.length, {
+          ? resolveWizardNavigation(wizardStep, requestedStep, steps.length, {
               instanceIdError,
               prerequisite: { step: 0, error: acpSelectionError },
             })
@@ -308,7 +327,7 @@ export function AddProviderInstanceDialog({
               instanceIdError,
               selectionError: acpSelectionError,
             })
-        : resolveWizardNavigation(wizardStep, requestedStep, ADD_PROVIDER_WIZARD_STEPS.length, {
+        : resolveWizardNavigation(wizardStep, requestedStep, steps.length, {
             instanceIdError,
           }),
     );
@@ -424,10 +443,10 @@ export function AddProviderInstanceDialog({
       return;
     }
     onCreated?.(brandedId, driver);
-    if (isAcpRegistry && !isLocalAcp) {
+    if (signInAfterSave) {
       setCreatedInstanceId(brandedId);
       setIsSaving(false);
-      setWizardStep(2);
+      setWizardStep(steps.length - 1);
       return;
     }
     toastManager.add({
@@ -467,7 +486,7 @@ export function AddProviderInstanceDialog({
               currentStep={wizardStep}
               summaries={wizardStepSummaries}
               instanceIdError={instanceIdError}
-              steps={isLocalAcp ? LOCAL_ACP_WIZARD_STEPS : ACP_REGISTRY_WIZARD_STEPS}
+              steps={steps}
               disabled={isSaving || isPreparingRegistryAgent || createdInstanceId !== null}
               identityStep={1}
               prerequisite={{ step: 0, error: acpSelectionError }}
@@ -478,7 +497,8 @@ export function AddProviderInstanceDialog({
               currentStep={wizardStep}
               summaries={wizardStepSummaries}
               instanceIdError={instanceIdError}
-              disabled={isSaving || isPreparingRegistryAgent}
+              steps={steps}
+              disabled={isSaving || isPreparingRegistryAgent || createdInstanceId !== null}
               onNavigation={applyWizardNavigation}
             />
           )}
@@ -799,7 +819,7 @@ export function AddProviderInstanceDialog({
                 >
                   {isSaving
                     ? gt("Adding...")
-                    : isAcpRegistry && !isLocalAcp
+                    : signInAfterSave
                       ? gt("Continue to sign-in")
                       : gt("Add instance")}
                 </Button>

@@ -371,6 +371,10 @@
       "types": "./src/state/shell.ts",
       "default": "./src/state/shell.ts"
     },
+    "./state/agent-config": {
+      "types": "./src/state/agentConfig.ts",
+      "default": "./src/state/agentConfig.ts"
+    },
     "./state/issue-trackers": {
       "types": "./src/state/issueTrackers.ts",
       "default": "./src/state/issueTrackers.ts"

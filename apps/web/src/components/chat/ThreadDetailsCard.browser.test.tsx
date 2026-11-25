@@ -1,13 +1,24 @@
-import { StrictMode } from "react";
-import { EnvironmentId, ThreadId, type ScopedThreadRef } from "@t3tools/contracts";
+import { StrictMode, type ReactNode } from "react";
+import {
+  EnvironmentId,
+  ProviderInstanceId,
+  ServerProvider,
+  ThreadId,
+  type ScopedThreadRef,
+} from "@t3tools/contracts";
+import * as Schema from "effect/Schema";
 import { expect, it } from "vite-plus/test";
 import { page } from "vite-plus/test/browser";
 import { act, render } from "../../../test/render";
+import { CLAUDE_PROVIDER } from "../../../test/fakeEnvironment";
 import { selectThreadPanelOpen, useRightPanelStore } from "../../rightPanelStore";
 import { PopoverCreateHandle } from "../ui/popover";
 import { ChatCanvasContext } from "./ChatCanvasContext";
 import { resolveChatCanvasLayout } from "./chatCanvasLayout";
 import { ThreadDetailsCard } from "./ThreadDetailsCard";
+import { ThreadDetailsUsage } from "./ThreadDetailsUsage";
+
+const decodeProvider = Schema.decodeUnknownSync(ServerProvider);
 
 const threadA: ScopedThreadRef = {
   environmentId: EnvironmentId.make("environment"),
@@ -45,6 +56,7 @@ function Card({
   rows = 1,
   automationRows = 0,
   serverOverflowRows = 0,
+  usage,
 }: {
   threadRef: ScopedThreadRef;
   inline: boolean;
@@ -55,6 +67,7 @@ function Card({
   automationRows?: number;
   /** Rows of 100px that expanded server lists add, which density ignores. */
   serverOverflowRows?: number;
+  usage?: ReactNode;
 }) {
   return (
     // The web root renders in StrictMode, which re-runs ref callbacks on every mount.
@@ -83,6 +96,7 @@ function Card({
               <p style={{ height: density === "full" ? rows * 100 : 50 }}>
                 Details for {threadRef.threadId}
               </p>
+              {usage}
               {density === "full" && automationRows > 0 ? (
                 <section data-thread-automations-panel style={{ height: automationRows * 100 }} />
               ) : null}
@@ -99,6 +113,48 @@ function Card({
     </StrictMode>
   );
 }
+
+it("shows the reset countdown for each usage window in the card without hovering", async () => {
+  using fixture = setup();
+  const resetsAt = "2099-01-01T00:00:00.000Z";
+  await using _screen = await render(
+    <Card
+      threadRef={threadB}
+      inline
+      fixture={fixture}
+      usage={
+        <ThreadDetailsUsage
+          providerInstanceId={ProviderInstanceId.make("claudeAgent")}
+          providers={[
+            decodeProvider({
+              ...CLAUDE_PROVIDER,
+              usageLimits: {
+                checkedAt: CLAUDE_PROVIDER.checkedAt,
+                windows: [
+                  { id: "five_hour", label: "Session", kind: "session", usedPercent: 10, resetsAt },
+                  { id: "seven_day", label: "Weekly", kind: "weekly", usedPercent: 20, resetsAt },
+                  {
+                    id: "seven_day_fable",
+                    label: "Weekly · Fable",
+                    kind: "weekly",
+                    usedPercent: 90,
+                    resetsAt,
+                  },
+                ],
+              },
+            }),
+          ]}
+          sources={[]}
+        />
+      }
+    />,
+  );
+  const card = page.getByRole("region", { name: "Thread details" });
+  for (const label of ["Session", "Weekly", "Weekly · Fable"]) {
+    const row = card.getByRole("link", { name: new RegExp(`^${label}:`) });
+    await expect.element(row.getByText(/resets in \d+d \d+h/i)).toBeVisible();
+  }
+});
 
 it("stays open once opened", async () => {
   using fixture = setup();

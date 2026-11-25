@@ -25,6 +25,7 @@ import {
   T3_CHAT_THEME,
   EMBER_THEME,
   GROVE_THEME,
+  ILOS_THEME,
   IRIS_THEME,
   OCEAN_THEME,
 } from "../../themePalette";
@@ -56,6 +57,7 @@ import { ThemeWireframe } from "./ThemeWireframe";
 import { T, useGT } from "gt-react";
 
 const MAINTAINER_THEMES: ReadonlyArray<ThemeDefinition> = [
+  ILOS_THEME,
   T3_CHAT_THEME,
   GROVE_THEME,
   OCEAN_THEME,

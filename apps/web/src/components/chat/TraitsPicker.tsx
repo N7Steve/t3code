@@ -388,7 +388,8 @@ export const ULTRATHINK_IN_BODY_NOTE = msg(
   'Your prompt contains "ultrathink" in the text. Remove it to change this option.',
 );
 
-const TraitsMenuContent = memo(function TraitsMenuContentImpl(props: TraitsSelectionInput) {
+/** All of the model's options as menu radio groups, for menus with no room for the column. */
+export const TraitsMenuContent = memo(function TraitsMenuContentImpl(props: TraitsSelectionInput) {
   const traits = useTraitsSelection(props);
   const resolve = useMessages();
   const {

@@ -11,7 +11,7 @@ import {
   type ProviderInstanceMutation,
   type ServerProvider,
 } from "@t3tools/contracts";
-import { useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { TextInput, View } from "react-native";
 import { m } from "../../i18n/messages";
 
@@ -67,15 +67,18 @@ function useProviderInstanceMutation(environment: SettingsTarget) {
 export function ClaudeAccount({
   environment,
   provider,
+  renderAccount,
 }: {
   readonly environment: SettingsTarget;
   readonly provider: ServerProvider;
+  readonly renderAccount?: (actions: ReactNode, configFolder: string) => ReactNode;
 }) {
   const gt = useGT();
   const [editing, setEditing] = useState(false);
   const { run, pending, error } = useProviderInstanceMutation(environment);
   const instance = environment.serverConfig.settings.providerInstances[provider.instanceId];
   const configDir = claudeConfigDir(instance);
+  const configFolder = configDir || gt("Default config folder");
   const name = provider.displayName ?? "Claude";
   const status = !provider.enabled
     ? gt("Turned off")
@@ -124,38 +127,43 @@ export function ClaudeAccount({
       ],
     );
   }
+  const menu = editing ? null : (
+    <Menu
+      accessible
+      accessibilityRole="button"
+      accessibilityLabel={gt("{account} options", { account: name })}
+      title={name}
+      actions={actions}
+      onPressAction={({ nativeEvent }) => {
+        if (pending) return;
+        if (nativeEvent.event === "edit") setEditing(true);
+        else if (nativeEvent.event === "remove") remove();
+      }}
+    >
+      <ControlPill
+        icon="ellipsis"
+        accessibilityLabel={gt("{account} options", { account: name })}
+        disabled={pending}
+      />
+    </Menu>
+  );
   return (
     <View className="border-t border-border-subtle">
-      <View className="min-h-16 flex-row items-center gap-3 px-4 py-3">
-        <View className="min-w-0 shrink grow gap-0.5">
-          <Text textRole="body" className="text-foreground" numberOfLines={1}>
-            {name}
-          </Text>
-          <Text textRole="footnote" className="text-foreground-muted" numberOfLines={2}>
-            {[status, configDir || gt("Default config folder")].filter(Boolean).join(" · ")}
-          </Text>
+      {renderAccount && !editing ? (
+        renderAccount(menu, configFolder)
+      ) : (
+        <View className="min-h-16 flex-row items-center gap-3 px-4 py-3">
+          <View className="min-w-0 shrink grow gap-0.5">
+            <Text textRole="body" className="text-foreground" numberOfLines={1}>
+              {name}
+            </Text>
+            <Text textRole="footnote" className="text-foreground-muted" numberOfLines={2}>
+              {[status, configFolder].filter(Boolean).join(" · ")}
+            </Text>
+          </View>
+          {menu}
         </View>
-        {editing ? null : (
-          <Menu
-            accessible
-            accessibilityRole="button"
-            accessibilityLabel={gt("{account} options", { account: name })}
-            title={name}
-            actions={actions}
-            onPressAction={({ nativeEvent }) => {
-              if (pending) return;
-              if (nativeEvent.event === "edit") setEditing(true);
-              else if (nativeEvent.event === "remove") remove();
-            }}
-          >
-            <ControlPill
-              icon="ellipsis"
-              accessibilityLabel={gt("{account} options", { account: name })}
-              disabled={pending}
-            />
-          </Menu>
-        )}
-      </View>
+      )}
       {editing ? (
         <ClaudeAccountForm
           environment={environment}
@@ -188,10 +196,6 @@ export function AddClaudeAccount({ environment }: { readonly environment: Settin
         <ListActionRow
           icon="plus"
           label={gt("Add {provider} account", { provider: "Claude" })}
-          description={gt(
-            "Use a {provider} config folder that is already signed in on this server.",
-            { provider: "Claude" },
-          )}
           onPress={() => setAdding(true)}
         />
       )}
@@ -245,17 +249,6 @@ function ClaudeAccountForm({
   }
   return (
     <View className="gap-2 px-4 py-3">
-      <Text textRole="footnote" className="text-foreground-muted">
-        {gt(
-          "Point at a {variable} folder on {environment} where {product} is already signed in. Sign in there with the {cli} first.",
-          {
-            variable: "CLAUDE_CONFIG_DIR",
-            environment: environment.label,
-            product: "Claude Code",
-            cli: "Claude CLI",
-          },
-        )}
-      </Text>
       {field("name", gt("Account name"), gt("Name, e.g. Work"))}
       {field(
         "configDir",

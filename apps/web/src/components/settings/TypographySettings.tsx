@@ -18,13 +18,12 @@ import { useScopedSettings, useUpdateScopedSettings } from "./useScopedSettings"
 import { isMacPlatform } from "../../lib/utils";
 import { Input } from "../ui/input";
 import {
-  DEFAULT_CODE_FONT_STACK,
-  DEFAULT_SANS_FONT_STACK,
   isFontFamilyAvailable,
   isMonospaceFamily,
   resolveDefaultFamilyLabel,
   resolveTerminalFontPreference,
   resolveTerminalFontSizePreference,
+  themeDefaultFontStacks,
   TYPOGRAPHY_ADVANCED_STORAGE_KEY,
 } from "../../appearanceFonts";
 import { AdvancedSettings } from "./AdvancedSettings";
@@ -44,15 +43,21 @@ import {
   useSearchableSetting,
 } from "./settingsSearch";
 
-let fontDefaultFamilies: { readonly sans: string | null; readonly code: string | null } | undefined;
+const fontDefaultFamiliesByTheme = new Map<
+  string,
+  { readonly sans: string | null; readonly code: string | null }
+>();
 
 function resolveFontDefaultFamilies() {
-  if (fontDefaultFamilies !== undefined) return fontDefaultFamilies;
+  const themeId = document.documentElement.dataset.themeId ?? "";
+  const cached = fontDefaultFamiliesByTheme.get(themeId);
+  if (cached !== undefined) return cached;
+  const stacks = themeDefaultFontStacks(themeId);
   const families = {
-    sans: resolveDefaultFamilyLabel(DEFAULT_SANS_FONT_STACK) ?? null,
-    code: resolveDefaultFamilyLabel(DEFAULT_CODE_FONT_STACK) ?? null,
+    sans: resolveDefaultFamilyLabel(stacks.sans) ?? null,
+    code: resolveDefaultFamilyLabel(stacks.code) ?? null,
   };
-  if (document.fonts.status === "loaded") fontDefaultFamilies = families;
+  if (document.fonts.status === "loaded") fontDefaultFamiliesByTheme.set(themeId, families);
   return families;
 }
 

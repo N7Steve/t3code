@@ -1,6 +1,7 @@
 import type { ModelSelection, ProviderInstanceId, RuntimeMode } from "@t3tools/contracts";
 import { createModelSelection } from "@t3tools/shared/model";
 import { T, useGT, useMessages } from "gt-react";
+import { ShieldIcon } from "lucide-react";
 import { type ComponentProps, memo, useId, useRef, useState } from "react";
 
 import { Menu as MenuPrimitive } from "@base-ui/react/menu";
@@ -23,8 +24,6 @@ export const ComposerFooterModeControls = memo(function ComposerFooterModeContro
   runtimeModeOptions: ReadonlyArray<RuntimeModeOption>;
   size?: "sm" | "xs";
   hidden?: boolean;
-  /** How the permissions chip shows: hidden while the thread matches the user's default. */
-  accessDisplay?: "label" | "icon" | "hidden";
   /** Draw the icon in the label color, not muted (the mode differs from the user's default). */
   emphasized?: boolean;
   onRuntimeModeChange: (mode: RuntimeMode) => void;
@@ -32,20 +31,17 @@ export const ComposerFooterModeControls = memo(function ComposerFooterModeContro
   const gt = useGT();
   const messages = useMessages();
   const size = props.size ?? "sm";
-  const accessDisplay = props.accessDisplay ?? "label";
   const composerFloatingLayerProps = useComposerMenuProps();
   const [open, setOpen] = useComposerMenuState(props.hidden);
   const permissionsChipRef = useRef<HTMLButtonElement>(null);
   const runtimeModeOption =
     props.runtimeModeOptions.find((option) => option.mode === props.runtimeMode) ??
     resolveRuntimeModeOption("approval-required", messages);
-  const RuntimeModeIcon = runtimeModeOption.icon;
-  // The chip opens the same Permissions toggle used in the model picker and the overflow menu.
   const permissionsTooltip = gt("Permissions: {mode}. {description}", {
     mode: runtimeModeOption.label,
     description: runtimeModeOption.description,
   });
-  const permissionsChip = (
+  return (
     <Menu
       open={open}
       onOpenChange={setOpen}
@@ -62,8 +58,6 @@ export const ComposerFooterModeControls = memo(function ComposerFooterModeContro
                   ref={permissionsChipRef}
                   data-composer-shortcut="composer.mode"
                   size={size}
-                  // Mirrors the model trigger's trailing pe-1 so the gaps on both sides of the chip match.
-                  className="ps-1.5"
                   aria-label={gt("Permissions: {mode}", { mode: runtimeModeOption.label })}
                 />
               }
@@ -71,17 +65,10 @@ export const ComposerFooterModeControls = memo(function ComposerFooterModeContro
           }
         >
           <ComposerControlIcon
-            icon={RuntimeModeIcon}
+            icon={ShieldIcon}
             size={size}
-            // Match the label, not full foreground: the chip's presence already marks the mode.
             {...(props.emphasized ? { className: "text-current" } : {})}
           />
-          <span
-            data-composer-control-label
-            className={accessDisplay === "icon" ? "sr-only" : undefined}
-          >
-            {runtimeModeOption.label}
-          </span>
         </TooltipTrigger>
         <TooltipPopup side="top">{permissionsTooltip}</TooltipPopup>
       </Tooltip>
@@ -94,15 +81,11 @@ export const ComposerFooterModeControls = memo(function ComposerFooterModeContro
       </MenuPopup>
     </Menu>
   );
-
-  return accessDisplay === "hidden" ? null : permissionsChip;
 });
 
 /**
  * Permission modes as one horizontal toggle, with the shown mode named below.
- * Each segment is a real menu radio item, so arrow keys reach it from the rest of the menu
- * and a pick closes the menu. Lives inside a Menu: the permissions chip, the model picker,
- * or the overflow menu.
+ * Each segment is a menu radio item, so arrow keys can reach it and a pick closes the menu.
  */
 export function ComposerPermissionsSection(props: {
   runtimeMode: RuntimeMode;

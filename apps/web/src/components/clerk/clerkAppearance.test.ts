@@ -3,6 +3,7 @@ import { describe, expect, it } from "vite-plus/test";
 import {
   EMBER_THEME,
   GROVE_THEME,
+  ILOS_THEME,
   IRIS_THEME,
   OCEAN_THEME,
   T3_CHAT_THEME,
@@ -41,13 +42,16 @@ function mixThemeColors(first: string, second: string, firstWeight: number): str
 }
 
 const builtInThemeModes = [
+  ILOS_THEME,
   T3_CHAT_THEME,
   GROVE_THEME,
   OCEAN_THEME,
   EMBER_THEME,
   IRIS_THEME,
 ].flatMap((theme) =>
-  [theme.colors, theme.variants?.dark].filter((colors): colors is ThemeColors => !!colors),
+  [theme.colors, ...Object.values(theme.variants ?? {})].filter(
+    (colors): colors is ThemeColors => !!colors,
+  ),
 );
 
 describe("clerkAppearance", () => {

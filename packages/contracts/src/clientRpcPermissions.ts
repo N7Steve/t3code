@@ -18,6 +18,17 @@ import { WS_METHODS } from "./rpc.ts";
 /** Incremental client enforcement; the server still authorizes every request. */
 export const CLIENT_GUARDED_RPC_SCOPES = {
   [WS_METHODS.providerAuthRemoveMethod]: AuthProvidersManageScope,
+  // These rewrite the provider CLIs' own config files, which also hold their MCP credentials.
+  [WS_METHODS.agentConfigUpsertMcpServer]: AuthProvidersManageScope,
+  [WS_METHODS.agentConfigSetMcpServerEnabled]: AuthProvidersManageScope,
+  [WS_METHODS.agentConfigRemoveMcpServer]: AuthProvidersManageScope,
+  [WS_METHODS.agentConfigRepairMcpServer]: AuthProvidersManageScope,
+  [WS_METHODS.agentConfigSetSkillEnabled]: AuthProvidersManageScope,
+  [WS_METHODS.agentConfigRemoveSkill]: AuthProvidersManageScope,
+  [WS_METHODS.agentConfigSyncMcpServer]: AuthProvidersManageScope,
+  [WS_METHODS.agentConfigImportPlugin]: AuthProvidersManageScope,
+  [WS_METHODS.agentConfigSetPluginEnabled]: AuthProvidersManageScope,
+  [WS_METHODS.agentConfigRemovePlugin]: AuthProvidersManageScope,
   [WS_METHODS.previewClose]: AuthPreviewOperateScope,
   // Stopping a server signals its processes, as closing a terminal does.
   [WS_METHODS.previewStopLocalServer]: AuthTerminalOperateScope,

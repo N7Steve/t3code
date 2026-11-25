@@ -51,6 +51,7 @@ import {
 import { ProviderModelPicker } from "../chat/ProviderModelPicker";
 import { TraitsPicker } from "../chat/TraitsPicker";
 import { isElectron } from "../../env";
+import { DEFAULT_THEME_PREFERENCE } from "../../themePalette";
 import { buildHostedChannelSelectionUrl, type HostedAppChannel } from "../../hostedPairing";
 import {
   readAppearanceModePreference,
@@ -487,7 +488,7 @@ export function useSettingsRestore(onRestored?: () => void) {
   const isBackgroundActivityDirty = hasChangedBackgroundActivitySettings(settings);
 
   const changedSettingLabels = [
-    ...(theme !== "system" ? [gt("Theme")] : []),
+    ...(theme !== DEFAULT_THEME_PREFERENCE ? [gt("Theme")] : []),
     ...(!followSystem ? [gt("Follow system")] : []),
     ...(themeHalves !== null ? [gt("Theme mix")] : []),
     ...(settings.appearanceContrast !== DEFAULT_UNIFIED_SETTINGS.appearanceContrast
@@ -552,10 +553,6 @@ export function useSettingsRestore(onRestored?: () => void) {
       ? [gt("Snooze options")]
       : []),
     ...(settings.wordWrap !== DEFAULT_UNIFIED_SETTINGS.wordWrap ? [gt("Word wrap")] : []),
-    ...(settings.persistComposerContextStrip !==
-    DEFAULT_UNIFIED_SETTINGS.persistComposerContextStrip
-      ? [gt("Composer context")]
-      : []),
     ...getChangedTypographySettingLabels(settings, messages),
     ...(settings.diffFilesCollapsed !== DEFAULT_UNIFIED_SETTINGS.diffFilesCollapsed
       ? [gt("Default diff file state")]
@@ -657,7 +654,7 @@ export function useSettingsRestore(onRestored?: () => void) {
       previousTheme = readThemePreference();
     } catch {}
     const liveHalves = readThemeHalves();
-    const needsThemeReset = previousTheme !== "system";
+    const needsThemeReset = previousTheme !== DEFAULT_THEME_PREFERENCE;
     const needsMixReset = liveHalves !== null;
     const needsFollowSystemReset = readAppearanceModePreference(previousTheme) !== "system";
     const notifyThemeRestoreFailure = () => {
@@ -676,7 +673,7 @@ export function useSettingsRestore(onRestored?: () => void) {
       if (previousHalves?.light) setThemeHalf("light", previousHalves.light);
       if (previousHalves?.dark) setThemeHalf("dark", previousHalves.dark);
     };
-    if (needsThemeReset && !setTheme("system")) {
+    if (needsThemeReset && !setTheme(DEFAULT_THEME_PREFERENCE)) {
       notifyThemeRestoreFailure();
       return;
     }
@@ -701,7 +698,6 @@ export function useSettingsRestore(onRestored?: () => void) {
       notificationMode: DEFAULT_UNIFIED_SETTINGS.notificationMode,
       inAppNotificationsEnabled: DEFAULT_UNIFIED_SETTINGS.inAppNotificationsEnabled,
       wordWrap: DEFAULT_UNIFIED_SETTINGS.wordWrap,
-      persistComposerContextStrip: DEFAULT_UNIFIED_SETTINGS.persistComposerContextStrip,
       diffFilesCollapsed: DEFAULT_UNIFIED_SETTINGS.diffFilesCollapsed,
       diffIgnoreWhitespace: DEFAULT_UNIFIED_SETTINGS.diffIgnoreWhitespace,
       diffLayout: DEFAULT_UNIFIED_SETTINGS.diffLayout,

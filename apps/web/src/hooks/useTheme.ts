@@ -6,6 +6,7 @@ import { useSyncExternalStore } from "react";
 import {
   applyThemePalette,
   CUSTOM_THEMES_STORAGE_KEY,
+  DEFAULT_THEME_PREFERENCE,
   invalidateCustomThemes,
   canonicalThemePreference,
   isKnownThemePreference,
@@ -41,7 +42,7 @@ type DesktopThemeBridge = Pick<DesktopBridge, "setTheme">;
 const STORAGE_KEY = "t3code:theme";
 const MEDIA_QUERY = "(prefers-color-scheme: dark)";
 const DEFAULT_THEME_SNAPSHOT: ThemeSnapshot = {
-  theme: "system",
+  theme: DEFAULT_THEME_PREFERENCE,
   resolvedTheme: "light",
   systemDark: false,
   followSystem: true,
@@ -143,8 +144,13 @@ function getSystemDark() {
   );
 }
 
+// The default theme follows the OS until the user sets a mode; setTheme always stores one.
+function followsSystemByDefault(theme: Theme): boolean {
+  return theme === "system" || theme === DEFAULT_THEME_PREFERENCE;
+}
+
 function readStoredFollowSystem(theme: Theme): boolean {
-  if (typeof window === "undefined") return theme === "system";
+  if (typeof window === "undefined") return followsSystemByDefault(theme);
 
   try {
     const raw = window.localStorage.getItem(THEME_FOLLOW_SYSTEM_STORAGE_KEY);
@@ -152,7 +158,7 @@ function readStoredFollowSystem(theme: Theme): boolean {
     if (raw === "false") return false;
   } catch {}
 
-  return theme === "system";
+  return followsSystemByDefault(theme);
 }
 
 function isThemePreferenceMode(value: string | null): value is ThemePreferenceMode {

@@ -272,14 +272,24 @@ describe("DesktopServerExposure", () => {
       {
         bridge0: [{ address: "192.168.2.1", family: "IPv4", internal: false }],
         utun4: [{ address: "10.8.0.2", family: "IPv4", internal: false }],
-        en0: [{ address: "192.168.1.20", family: "IPv4", internal: false }],
+        NordLynx: [{ address: "100.71.20.218", family: "IPv4", internal: false }],
+        "vEthernet (Default Switch)": [
+          { address: "172.22.208.1", family: "IPv4", internal: false },
+        ],
+        "vEthernet (WSL)": [{ address: "172.28.32.1", family: "IPv4", internal: false }],
+        Ethernet: [{ address: "192.168.50.34", family: "IPv4", internal: false }],
       },
       Effect.gen(function* () {
         const serverExposure = yield* DesktopServerExposure.DesktopServerExposure;
         yield* serverExposure.configureFromSettings({ port: 4173 });
 
         const change = yield* serverExposure.setMode("network-accessible");
-        assert.equal(change.state.advertisedHost, "192.168.1.20");
+        assert.equal(change.state.advertisedHost, "192.168.50.34");
+        const endpoints = yield* serverExposure.getAdvertisedEndpoints;
+        assert.equal(
+          endpoints.find((endpoint) => endpoint.isDefault)?.httpBaseUrl,
+          "http://192.168.50.34:4173/",
+        );
       }),
     ),
   );

@@ -28,6 +28,7 @@ export type SettingsPath =
   | "/settings/keybindings"
   | "/settings/snap-shot"
   | "/settings/providers"
+  | "/settings/mcp-skills"
   | "/settings/threads"
   | "/settings/browser"
   | "/settings/devices"
@@ -103,6 +104,7 @@ export const SETTINGS_SECTION_LABELS: Readonly<Record<SettingsPath, string>> = {
   "/settings/keybindings": msg("Keybindings"),
   "/settings/snap-shot": msg("SnapShots"),
   "/settings/providers": msg("Providers"),
+  "/settings/mcp-skills": msg("MCP & skills"),
   "/settings/threads": msg("Threads"),
   "/settings/browser": msg("Browser"),
   "/settings/devices": msg("Devices"),
@@ -151,6 +153,7 @@ export const SETTINGS_NAV_GROUPS: ReadonlyArray<{
     heading: msg("Agents"),
     paths: [
       "/settings/providers",
+      "/settings/mcp-skills",
       "/settings/threads",
       "/settings/browser",
       "/settings/devices",
@@ -443,11 +446,6 @@ export const SETTINGS_SEARCH_ITEMS = [
     title: msg("Word wrap"),
     to: "/settings/appearance",
     searchTerms: [msg("long lines code blocks diffs file previews")],
-  },
-  {
-    id: "composer-context",
-    title: msg("Composer context"),
-    to: "/settings/appearance",
   },
   {
     id: "project-grouping",
@@ -1075,6 +1073,38 @@ export const SETTINGS_SEARCH_ITEMS = [
     to: "/settings/scheduled-tasks",
   },
   {
+    id: "mcp-servers",
+    title: msg("MCP servers"),
+    to: "/settings/mcp-skills",
+    searchTerms: [
+      msg(
+        "mcp model context protocol tools servers stdio command claude code codex cursor opencode config.toml claude.json mcp.json sync enable disable",
+      ),
+    ],
+    providerSettingsOnly: true,
+  },
+  {
+    id: "mcp-connectors",
+    title: msg("Connectors"),
+    to: "/settings/mcp-skills",
+    searchTerms: [msg("remote mcp http sse url headers connector")],
+    providerSettingsOnly: true,
+  },
+  {
+    id: "agent-skills",
+    title: msg("Skills"),
+    to: "/settings/mcp-skills",
+    searchTerms: [msg("skill.md agent skills copy enable disable claude codex cursor opencode")],
+    providerSettingsOnly: true,
+  },
+  {
+    id: "agent-plugins",
+    title: msg("Plugins"),
+    to: "/settings/mcp-skills",
+    searchTerms: [msg("custom plugin codex import upload zip marketplace")],
+    providerSettingsOnly: true,
+  },
+  {
     id: "agent-browser-access",
     title: msg("Agent browser access"),
     to: "/settings/browser",
@@ -1480,6 +1510,7 @@ const SETTINGS_CATEGORY_SCOPES: Readonly<Record<SettingsPath, SettingsSearchScop
   "/settings/snap-shot": null,
   "/settings/keybindings": null,
   "/settings/providers": null,
+  "/settings/mcp-skills": null,
   "/settings/threads": null,
   "/settings/browser": null,
   "/settings/devices": null,

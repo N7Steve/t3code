@@ -76,6 +76,25 @@ The most common defect in this repo is a change that works on the path you teste
 - **Languages.** User-facing text ships in every locale: translate new keys in `apps/{web,mobile}/src/i18n/translations` after `vp run i18n:generate` (`vp run i18n:check` gates it) and in `apps/marketing/src/i18n`.
 - **Docs.** Check whether the change makes existing guidance inaccurate. Apply the [documentation rules](#documentation) before adding anything.
 
+## Local Windows installation
+
+On Windows, register the updater once:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/update-windows-install.ps1 -RegisterTask
+```
+
+When this checkout has the scheduled task, run the following after validating changes that affect
+the installed desktop app, its bundled web UI, or its server. Run it before reporting completion,
+even if the changes are still uncommitted:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/update-windows-install.ps1
+```
+
+The script packages the current `main` checkout and queues the installer. Windows applies it when
+T3 Code is closed. Installation results are recorded in `release/windows-local/install.log`.
+
 ## Dev servers
 
 - `vp i` installs. Worktrees get this from the t3.json setup script; if module resolution looks broken, it probably did not run.

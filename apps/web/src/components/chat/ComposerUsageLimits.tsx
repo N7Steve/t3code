@@ -4,6 +4,7 @@ import { limitsNotice } from "@t3tools/shared/usageLimitsCopy";
 import { msg, T, useGT, useMessages } from "gt-react";
 import { GaugeIcon } from "lucide-react";
 
+import { useNowMinute } from "../../hooks/useNowMinute";
 import { m, type MessageResolver } from "../../i18n/messages";
 import { ensureLocalApi } from "../../localApi";
 import { formatUpcomingTimestamp } from "../../timestampFormat";
@@ -42,7 +43,9 @@ function AccountSummary({ account }: { readonly account: UsageLimitsReport["acco
       ) : (
         label
       )}
-      {account.plan ? ` · ${account.plan}` : null}
+      {account.plan ? (
+        <span className="font-normal text-muted-foreground"> · {account.plan}</span>
+      ) : null}
     </>
   );
 }
@@ -54,23 +57,12 @@ export function usageLimitsBannerItem(
   onDismiss: () => void,
   resolve: MessageResolver = m,
 ): ComposerBannerStackItem {
-  const [first] = report.accounts;
-  const single = report.accounts.length === 1 && first ? first : null;
-  const summary = single ? (
-    <AccountSummary account={single} />
-  ) : (
-    resolve(
-      msg("{count, plural, one {{count} account} other {{count} accounts}}", {
-        count: report.accounts.length,
-      }),
-    )
-  );
   return {
     id,
     variant: "info",
     icon: <GaugeIcon />,
     title: resolve(msg("Usage limits")),
-    description: summary,
+    compact: true,
     dismissLabel: resolve(msg("Dismiss usage limits")),
     onDismiss,
     children: <UsageLimitsBannerBody report={report} environmentId={environmentId} />,
@@ -134,10 +126,10 @@ function UsageLimitsBannerBody({
   readonly environmentId: EnvironmentId;
 }) {
   const messages = useMessages();
-  const now = Date.parse(report.createdAt);
+  const now = Date.parse(`${useNowMinute()}:00Z`);
   return (
     <ComposerBanner.Scroll>
-      <ComposerBanner.Body className="flex flex-col gap-2 pt-1 pb-1.5 pe-2">
+      <ComposerBanner.Body className="flex flex-col divide-y divide-border pb-1.5 pe-2">
         {report.accounts.map((account) => {
           const resetCreditInput =
             account.resetCreditInput ??
@@ -145,21 +137,19 @@ function UsageLimitsBannerBody({
           const notice = limitsNotice(account.limits, messages);
           const externalUsage = account.limits.externalUsage;
           return (
-            <div key={account.id} className="flex min-w-0 flex-col gap-1">
-              {report.accounts.length > 1 ? (
-                <span className="truncate text-xs text-muted-foreground">
-                  <AccountSummary account={account} />
-                </span>
-              ) : null}
+            <div key={account.id} className="flex min-w-0 flex-col gap-1 py-2 first:pt-1">
+              <span className="truncate text-xs font-medium text-foreground">
+                <AccountSummary account={account} />
+              </span>
               {notice ? (
                 <span className="text-xs text-muted-foreground">{notice}</span>
               ) : (
                 <LimitWindows
-                  compact
                   driver={account.driver}
                   accentColor={account.accentColor}
                   windows={account.limits.windows}
                   now={now}
+                  compact
                 />
               )}
               {externalUsage ? (
@@ -184,7 +174,7 @@ function UsageLimitsBannerBody({
           );
         })}
         {report.notices.map((notice) => (
-          <span key={notice} className="text-xs text-muted-foreground">
+          <span key={notice} className="py-2 text-xs text-muted-foreground">
             {notice}
           </span>
         ))}

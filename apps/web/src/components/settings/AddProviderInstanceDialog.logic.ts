@@ -9,6 +9,7 @@ const ACP_REGISTRY_IDENTITY_STEP = 1;
 
 const PROVIDER_STEP = msg("Provider", { $context: "wizard step" });
 const IDENTITY_STEP_LABEL = msg("Identity", { $context: "wizard step" });
+export const SIGN_IN_WIZARD_STEP = msg("Sign in", { $context: "wizard step" });
 
 export const ADD_PROVIDER_WIZARD_STEPS = [
   PROVIDER_STEP,
@@ -18,7 +19,7 @@ export const ADD_PROVIDER_WIZARD_STEPS = [
 export const ACP_REGISTRY_WIZARD_STEPS = [
   PROVIDER_STEP,
   IDENTITY_STEP_LABEL,
-  msg("Sign in", { $context: "wizard step" }),
+  SIGN_IN_WIZARD_STEP,
 ] as const;
 export const LOCAL_ACP_WIZARD_STEPS = [PROVIDER_STEP, IDENTITY_STEP_LABEL] as const;
 

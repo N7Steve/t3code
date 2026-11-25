@@ -4,19 +4,15 @@ import type { ProviderInstanceEntry } from "../../providerInstances";
 import { type AppModelOption } from "../../modelSelection";
 import { useGT, useMessages } from "gt-react";
 import { CircleAlertIcon } from "lucide-react";
+import type { ReactNode } from "react";
 import { CompactComposerControlsMenu } from "./CompactComposerControlsMenu";
 import { ComposerControl } from "./ComposerControl";
-import {
-  ComposerFooterModeControls,
-  ComposerModelPicker,
-  type RuntimeModeOption,
-} from "./ComposerFooterControls";
+import { ComposerModelPicker } from "./ComposerFooterControls";
 import {
   type EnvironmentId,
   type ModelSelection,
   type ProviderDriverKind,
   type ProviderInstanceId,
-  type RuntimeMode,
   type ServerProvider,
 } from "@t3tools/contracts";
 import type { EffortDisplay } from "@t3tools/contracts/settings";
@@ -24,21 +20,18 @@ import { cn } from "~/lib/utils";
 import { resolveComposerTraitsInput } from "./composerProviderState";
 import { useApplyThreadModelPick } from "./useApplyThreadModelPick";
 import { useStableCallback } from "../../hooks/useStableCallback";
-import {
-  ComposerEffortColumn,
-  ComposerPickerFooter,
-  describeComposerEffort,
-} from "./ComposerModelEffort";
+import { describeComposerEffort } from "./ComposerModelEffort";
 import type { useComposerProviderModel } from "./useComposerProviderModel";
-import { resolveComposerControlsOwnership } from "./composerControlsOwnership";
+import { ComposerAccountPicker, ComposerAccountRadioItems } from "./ComposerAccountPicker";
+import { ComposerReasoningPicker } from "./ComposerReasoningPicker";
+import { providerAccountEntries, resolveAccountSwitchModel } from "./ProviderModelPicker.logic";
+import { TraitsMenuContent } from "./TraitsPicker";
 
-/**
- * The composer footer controls: the model picker (which also holds effort, speed and
- * permissions), mode controls and the overflow menu for blocks that do not fit. Rendered in the
- * expanded footer or the resting controls host.
- */
-// Model and effort share one trigger; it stays filled while its popup is open.
-const MODEL_TRIGGER_STATES = "data-popup-open:bg-accent data-popup-open:text-foreground";
+const SELECT_TRIGGER_STATES = "data-popup-open:bg-accent data-popup-open:text-foreground";
+
+type BlockId = "reasoning" | "account";
+/** Collapse order: the last block turns icon-only first, then hides first. */
+const BLOCK_PRIORITY: ReadonlyArray<BlockId> = ["account", "reasoning"];
 
 export function ComposerControlsBar(props: {
   environmentId: EnvironmentId;
@@ -55,12 +48,6 @@ export function ComposerControlsBar(props: {
   promptUltrathink: PromptUltrathink;
   onPromptEdit: (edit: (prompt: string) => string) => void;
   effortDisplay: EffortDisplay;
-  /** The strip under a new thread names the permissions, so the row does not repeat them. */
-  permissionsShownInStrip: boolean;
-  compatibleRuntimeMode: RuntimeMode;
-  defaultRuntimeMode: RuntimeMode | undefined;
-  compatibleRuntimeModeOptions: ReadonlyArray<RuntimeModeOption>;
-  handleRuntimeModeChange: (mode: RuntimeMode) => void;
   composerControlsCollapsed: boolean;
   composerControlsHidden: boolean;
   restingHiddenBlockCount: number;
@@ -101,13 +88,9 @@ export function ComposerControlsBar(props: {
     reportedModelSelection,
     promptUltrathink,
     onPromptEdit,
-    compatibleRuntimeMode,
-    defaultRuntimeMode,
-    compatibleRuntimeModeOptions,
-    handleRuntimeModeChange,
     composerControlsCollapsed,
     composerControlsHidden,
-    restingHiddenBlockCount: measuredHiddenBlockCount,
+    restingHiddenBlockCount,
     iconOnlyBlockCount,
     showProviderUnavailable,
     providerSetupInstanceId,
@@ -132,20 +115,8 @@ export function ComposerControlsBar(props: {
     modelPickerIconClassName,
     getModelDisabledReason,
   } = props;
-  const accessMatchesDefault = compatibleRuntimeMode === defaultRuntimeMode;
-  const {
-    accessDisplay,
-    showModeBlock,
-    hiddenBlockCount: restingHiddenBlockCount,
-    hiddenBlockIds: hiddenRestingBlockIds,
-    overflowShowsPermissions,
-    pickerOwnsModeShortcut,
-  } = resolveComposerControlsOwnership({
-    matchesDefault: accessMatchesDefault || props.permissionsShownInStrip,
-    collapsed: composerControlsCollapsed,
-    measuredHiddenBlockCount,
-  });
   const controlSize = composerControlsCollapsed ? "xs" : "sm";
+  const controlsDisabled = providerCatalogPending || isSendBusy;
   const gt = useGT();
   const m = useMessages();
   const applyThreadModelPick = useApplyThreadModelPick();
@@ -165,151 +136,191 @@ export function ComposerControlsBar(props: {
     onPromptEdit,
   });
   const effort = describeComposerEffort(traitsInput, props.effortDisplay, controlSize, m);
-  const restingBlockDefs = showModeBlock
-    ? [
-        {
-          id: "mode",
-          content: (
-            <ComposerFooterModeControls
-              runtimeMode={compatibleRuntimeMode}
-              runtimeModeOptions={compatibleRuntimeModeOptions}
-              size={controlSize}
-              hidden={composerControlsHidden || restingHiddenBlockCount > 0}
-              accessDisplay={accessDisplay}
-              emphasized={!accessMatchesDefault}
-              onRuntimeModeChange={handleRuntimeModeChange}
-            />
-          ),
-        },
-      ]
-    : [];
-  // Its own element, so typing (which rebuilds the controls around it) leaves it cached.
-  const composerModelPicker = (
-    <ComposerModelPicker
-      environmentId={environmentId}
-      workspaceCwd={props.workspaceCwd}
-      compact={false}
-      isComposerOwned
-      // The trigger grows away from this edge when its model or effort label changes.
-      popupAlign={composerControlsCollapsed ? "start" : "end"}
-      disabled={providerCatalogPending || isSendBusy}
-      multipleModelsEnabled={multipleModelsEnabled}
-      multipleModelSelections={multipleModelSelections}
-      onMultipleModelSelectionsChange={onMultipleModelSelectionsChange}
-      selectedModelSelection={selectedModelSelection}
-      onProviderModelSelect={onProviderModelSelect}
-      activeInstanceId={
-        providerCatalogPending
-          ? (activeThreadModelSelection?.instanceId ?? selectedInstanceId)
-          : selectedInstanceId
-      }
-      model={
-        providerCatalogPending
-          ? (activeThreadModelSelection?.model ?? selectedModelForPickerWithCustomFallback)
-          : selectedModelForPickerWithCustomFallback
-      }
-      lockedProvider={lockedProvider}
-      lockedContinuationGroupKey={lockedContinuationGroupKey}
-      instanceEntries={providerInstanceEntries}
-      keybindings={keybindings}
-      modelOptionsByInstance={modelOptionsByInstance}
-      size={controlSize}
-      triggerClassName={cn(
-        "group/model-trigger",
-        MODEL_TRIGGER_STATES,
-        composerControlsCollapsed ? "min-w-13 shrink text-xs!" : "min-w-13",
-      )}
-      triggerSuffix={effort.suffix}
-      triggerDetail={effort.detail}
-      triggerShortcuts={
-        pickerOwnsModeShortcut ? "composer.effort composer.mode" : "composer.effort"
-      }
-      effortColumn={<ComposerEffortColumn traits={traitsInput} />}
-      footer={
-        <ComposerPickerFooter
-          traits={traitsInput}
-          runtimeMode={compatibleRuntimeMode}
-          runtimeModeOptions={compatibleRuntimeModeOptions}
-          onRuntimeModeChange={handleRuntimeModeChange}
-        />
-      }
-      terminalOpen={terminalOpen}
-      open={modelPickerOpen}
-      instanceIndicatorBackground={
-        composerControlsCollapsed
-          ? "color-mix(in srgb, var(--chat-composer-glass-surface) var(--glass-opacity), transparent)"
-          : "var(--contrast-input)"
-      }
-      {...(modelPickerIconClassName
-        ? { activeProviderIconClassName: modelPickerIconClassName }
-        : {})}
-      onOpenChange={onModelPickerOpenChange}
-      getModelDisabledReason={getModelDisabledReason}
-      onOpenProviderSetup={onOpenProviderSetup}
-    />
-  );
-  return showProviderUnavailable ? (
-    <ComposerControl
-      type="button"
-      disabled={!providerSetupInstanceId}
-      onClick={() => {
-        if (providerSetupInstanceId) {
-          onOpenProviderSetup(providerSetupInstanceId);
-        }
-      }}
-      data-chat-provider-unavailable="true"
-      className="shrink-0"
-    >
-      <CircleAlertIcon className="size-4" />
-      {providerSetupInstanceId ? gt("Open provider settings") : gt("No provider available")}
-    </ComposerControl>
-  ) : (
-    <>
-      {composerModelPicker}
+  const selectedModelEntry = selectedProviderModels.find((model) => model.slug === selectedModel);
+  const modelLabel = selectedModelEntry?.shortName ?? selectedModelEntry?.name ?? selectedModel;
 
-      <>
-        {restingBlockDefs.map((def, index) => {
-          const hidden = index >= restingBlockDefs.length - restingHiddenBlockCount;
-          return (
-            <div
-              key={def.id}
-              data-resting-block={def.id}
-              data-composer-block-icon-only={
-                index >= restingBlockDefs.length - iconOnlyBlockCount ? "true" : "false"
+  const accountEntries =
+    multipleModelSelections === null
+      ? providerAccountEntries(providerInstanceEntries, selectedInstanceId)
+      : [];
+  const resolveModelForAccount = (instanceId: ProviderInstanceId) =>
+    resolveAccountSwitchModel({
+      currentModel: selectedModel,
+      options: (modelOptionsByInstance.get(instanceId) ?? []).filter(
+        (option) => getModelDisabledReason(instanceId, option.slug) === null,
+      ),
+    });
+  const accountChoices = {
+    entries: accountEntries,
+    activeInstanceId: selectedInstanceId,
+    lockedProvider,
+    lockedContinuationGroupKey,
+    getDisabledReason: (instanceId: ProviderInstanceId) => {
+      if (resolveModelForAccount(instanceId) !== null) return null;
+      const model = modelOptionsByInstance.get(instanceId)?.find((option) => !option.isUnavailable);
+      return (model && getModelDisabledReason(instanceId, model.slug)) ?? gt("No models available");
+    },
+    onSelect: (instanceId: ProviderInstanceId) => {
+      const model = resolveModelForAccount(instanceId);
+      if (model !== null) onProviderModelSelect(instanceId, model);
+    },
+  };
+  const blockIds = BLOCK_PRIORITY.filter((id) => {
+    switch (id) {
+      case "reasoning":
+        return traitsInput !== null && (effort.suffix !== null || effort.detail !== null);
+      case "account":
+        return accountEntries.length > 0;
+    }
+  });
+  const isHidden = (id: BlockId) =>
+    blockIds.indexOf(id) >= blockIds.length - restingHiddenBlockCount;
+  const isIconOnly = (id: BlockId) => blockIds.indexOf(id) >= blockIds.length - iconOnlyBlockCount;
+  const hiddenIds = blockIds.filter(isHidden);
+
+  const block = (id: BlockId, content: ReactNode) => {
+    if (!blockIds.includes(id)) return null;
+    const hidden = isHidden(id);
+    const iconOnly = isIconOnly(id);
+    return (
+      <div
+        key={id}
+        data-resting-block={id}
+        data-resting-block-priority={blockIds.indexOf(id)}
+        data-composer-block-icon-only={iconOnly ? "true" : "false"}
+        aria-hidden={hidden || undefined}
+        inert={hidden || undefined}
+        className={cn(
+          "flex w-max min-w-max shrink-0 items-center gap-1",
+          hidden && "pointer-events-none invisible absolute",
+          iconOnly &&
+            "[&_[data-composer-control-label]]:pointer-events-none [&_[data-composer-control-label]]:invisible [&_[data-composer-control-label]]:absolute [&_[data-composer-control-label]]:w-max [&_[data-composer-control-label]]:max-w-none [&_[data-composer-control-compact-icon]]:[visibility:inherit] [&_[data-composer-control-compact-icon]]:relative",
+        )}
+      >
+        {content}
+      </div>
+    );
+  };
+
+  if (showProviderUnavailable) {
+    return (
+      <ComposerControl
+        type="button"
+        disabled={!providerSetupInstanceId}
+        onClick={() => {
+          if (providerSetupInstanceId) {
+            onOpenProviderSetup(providerSetupInstanceId);
+          }
+        }}
+        data-chat-provider-unavailable="true"
+        className="shrink-0"
+      >
+        <CircleAlertIcon className="size-4" />
+        {providerSetupInstanceId ? gt("Open provider settings") : gt("No provider available")}
+      </ComposerControl>
+    );
+  }
+
+  return (
+    <>
+      {block(
+        "account",
+        <ComposerAccountPicker
+          choices={accountChoices}
+          size={controlSize}
+          hidden={composerControlsHidden || isHidden("account")}
+          disabled={controlsDisabled}
+        />,
+      )}
+      <ComposerModelPicker
+        environmentId={environmentId}
+        workspaceCwd={props.workspaceCwd}
+        compact={false}
+        isComposerOwned
+        {...(multipleModelSelections !== null ? { groupAccounts: true } : { accountOnly: true })}
+        // The trigger grows away from this edge when its model label changes.
+        popupAlign={composerControlsCollapsed ? "start" : "end"}
+        disabled={controlsDisabled}
+        multipleModelsEnabled={multipleModelsEnabled}
+        multipleModelSelections={multipleModelSelections}
+        onMultipleModelSelectionsChange={onMultipleModelSelectionsChange}
+        selectedModelSelection={selectedModelSelection}
+        onProviderModelSelect={onProviderModelSelect}
+        activeInstanceId={
+          providerCatalogPending
+            ? (activeThreadModelSelection?.instanceId ?? selectedInstanceId)
+            : selectedInstanceId
+        }
+        model={
+          providerCatalogPending
+            ? (activeThreadModelSelection?.model ?? selectedModelForPickerWithCustomFallback)
+            : selectedModelForPickerWithCustomFallback
+        }
+        lockedProvider={lockedProvider}
+        lockedContinuationGroupKey={lockedContinuationGroupKey}
+        instanceEntries={providerInstanceEntries}
+        keybindings={keybindings}
+        modelOptionsByInstance={modelOptionsByInstance}
+        size={controlSize}
+        triggerClassName={cn(
+          SELECT_TRIGGER_STATES,
+          composerControlsCollapsed ? "min-w-13 shrink text-xs!" : "min-w-13",
+        )}
+        terminalOpen={terminalOpen}
+        open={modelPickerOpen}
+        instanceIndicatorBackground={
+          composerControlsCollapsed
+            ? "color-mix(in srgb, var(--chat-composer-glass-surface) var(--glass-opacity), transparent)"
+            : "var(--contrast-input)"
+        }
+        {...(modelPickerIconClassName
+          ? { activeProviderIconClassName: modelPickerIconClassName }
+          : {})}
+        onOpenChange={onModelPickerOpenChange}
+        getModelDisabledReason={getModelDisabledReason}
+        onOpenProviderSetup={onOpenProviderSetup}
+      />
+      {traitsInput
+        ? block(
+            "reasoning",
+            <ComposerReasoningPicker
+              traits={traitsInput}
+              summary={effort.suffix}
+              detail={effort.detail}
+              modelLabel={modelLabel}
+              size={controlSize}
+              hidden={composerControlsHidden || isHidden("reasoning")}
+              disabled={controlsDisabled}
+            />,
+          )
+        : null}
+      <div
+        data-resting-controls-overflow
+        aria-hidden={hiddenIds.length === 0 || undefined}
+        inert={hiddenIds.length === 0 || undefined}
+        className={cn(
+          "min-w-0 shrink-0",
+          hiddenIds.length === 0 && "pointer-events-none invisible absolute",
+        )}
+      >
+        <CompactComposerControlsMenu
+          size={controlSize}
+          hidden={composerControlsHidden || hiddenIds.length === 0}
+          {...(hiddenIds.includes("account")
+            ? { account: <ComposerAccountRadioItems choices={accountChoices} /> }
+            : {})}
+          {...(hiddenIds.includes("reasoning") && traitsInput
+            ? {
+                reasoning: {
+                  label: effort.detail
+                    ? gt("Reasoning: {level}", { level: effort.detail })
+                    : gt("Reasoning", { $context: "model reasoning options" }),
+                  content: <TraitsMenuContent {...traitsInput} />,
+                },
               }
-              aria-hidden={hidden || undefined}
-              inert={hidden || undefined}
-              className={cn(
-                "flex w-max min-w-max shrink-0 items-center gap-1",
-                hidden && "pointer-events-none invisible absolute",
-                index >= restingBlockDefs.length - iconOnlyBlockCount &&
-                  "[&_[data-composer-control-label]]:pointer-events-none [&_[data-composer-control-label]]:invisible [&_[data-composer-control-label]]:absolute [&_[data-composer-control-label]]:w-max [&_[data-composer-control-label]]:max-w-none [&_[data-composer-control-compact-icon]]:[visibility:inherit] [&_[data-composer-control-compact-icon]]:relative",
-              )}
-            >
-              {def.content}
-            </div>
-          );
-        })}
-        <div
-          data-resting-controls-overflow
-          aria-hidden={hiddenRestingBlockIds.length === 0 || undefined}
-          inert={hiddenRestingBlockIds.length === 0 || undefined}
-          className={cn(
-            "min-w-0 shrink-0",
-            hiddenRestingBlockIds.length === 0 && "pointer-events-none invisible absolute",
-          )}
-        >
-          <CompactComposerControlsMenu
-            runtimeMode={compatibleRuntimeMode}
-            runtimeModeOptions={compatibleRuntimeModeOptions}
-            size={controlSize}
-            hidden={composerControlsHidden || hiddenRestingBlockIds.length === 0}
-            // Permissions join the overflow only when their normal home is in it.
-            showPermissions={overflowShowsPermissions}
-            onRuntimeModeChange={handleRuntimeModeChange}
-          />
-        </div>
-      </>
+            : {})}
+        />
+      </div>
     </>
   );
 }

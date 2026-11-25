@@ -12,7 +12,6 @@ import { useAtomValue } from "@effect/atom-react";
 import { normalizeProviderAccentColor } from "@t3tools/client-runtime/state/provider-instance-display";
 import {
   type LimitPace,
-  paceOf,
   paceRemainingPercent,
   remainingPercent,
   type ResetCreditChoice,
@@ -22,6 +21,7 @@ import { msg, T, useGT, useMessages } from "gt-react";
 import { Fragment, useLayoutEffect, useState } from "react";
 
 import { usePrimarySettings } from "../../hooks/useSettings";
+import { cn } from "../../lib/utils";
 import { observeResize } from "../../lib/observeResize";
 import { environmentPresentations } from "../../state/presentation";
 import { useEnvironmentScope, readEnvironmentScope } from "../../state/session";
@@ -168,16 +168,16 @@ function WindowBar({
             role="img"
             aria-label={summary}
             tabIndex={0}
-            className="relative h-6 cursor-default rounded-full outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="relative h-5 cursor-default rounded-full outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           />
         }
       >
         {/* Clip both layers so the gap exposes even a translucent composer surface. */}
         <div className="absolute inset-0" style={paceMark?.gap}>
-          <div className="absolute inset-x-0 inset-y-1.5 rounded-full bg-muted" />
+          <div className="absolute inset-x-0 inset-y-[7px] rounded-full bg-muted" />
           {remaining > 0 ? (
             <div
-              className="absolute inset-y-1.5 left-0 rounded-full"
+              className="absolute inset-y-[7px] left-0 rounded-full"
               style={{ width: `${remaining}%`, backgroundColor: color }}
             />
           ) : null}
@@ -233,31 +233,25 @@ export function LimitWindows({
   const m = useMessages();
   return (
     <div
-      className={
+      className={cn(
+        "grid items-center gap-x-3 text-xs",
         compact
-          ? "grid grid-cols-[minmax(0,9rem)_minmax(3rem,1fr)_auto] gap-x-3 gap-y-0.5"
-          : "grid grid-cols-[11rem_minmax(0,1fr)_7rem] gap-x-4 gap-y-1"
-      }
+          ? "grid-cols-[minmax(0,1fr)_auto] gap-y-0.5"
+          : "grid-cols-[minmax(0,max-content)_auto_minmax(4rem,1fr)_auto]",
+      )}
     >
-      {windows.map((window) => {
-        const pace = paceOf(window, now);
-        const resetsIn = formatResetsIn(window, now, m);
-        return (
-          <Fragment key={window.id}>
-            <span className="flex min-w-0 items-center gap-2 text-xs">
-              <span className="truncate text-muted-foreground">{window.label}</span>
-              <span className="ms-auto shrink-0 font-medium text-foreground tabular-nums">
-                {gt("{remaining}% left", { remaining: remainingPercent(window) })}
-              </span>
-            </span>
-            <WindowBar color={color} window={window} now={now} />
-            <span className="flex items-center gap-2 text-xs whitespace-nowrap text-muted-foreground tabular-nums">
-              {pace ? <PaceIcon pace={pace} /> : null}
-              <span className="ms-auto shrink-0">{resetsIn ?? ""}</span>
-            </span>
-          </Fragment>
-        );
-      })}
+      {windows.map((window) => (
+        <Fragment key={window.id}>
+          <span className="truncate text-muted-foreground">{window.label}</span>
+          <span className="text-end font-medium text-foreground tabular-nums">
+            {gt("{remaining}% left", { remaining: remainingPercent(window) })}
+          </span>
+          <WindowBar color={color} window={window} now={now} />
+          <span className="text-end whitespace-nowrap text-muted-foreground tabular-nums">
+            {formatResetsIn(window, now, m) ?? ""}
+          </span>
+        </Fragment>
+      ))}
     </div>
   );
 }
@@ -360,9 +354,9 @@ export function ResetCredits({
   const m = useMessages();
   if (credits.availableCount === 0 && status === null) return null;
   return (
-    <div className="flex flex-col gap-1 text-xs text-muted-foreground">
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
       {resetCreditChoices(credits, input, now, false, m).map((choice) => (
-        <div key={choice.key} className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        <div key={choice.key} className="flex items-center gap-2">
           <span className="tabular-nums">{choice.summary}</span>
           {choice.availableCount > 0 ? (
             <Button
@@ -376,7 +370,7 @@ export function ResetCredits({
           ) : null}
         </div>
       ))}
-      {status ? <span className="text-foreground">{status}</span> : null}
+      {status ? <span className="basis-full text-foreground">{status}</span> : null}
       <ResetCreditDialog
         open={confirming}
         onOpenChange={setConfirming}

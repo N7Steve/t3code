@@ -155,6 +155,12 @@ describe("command permissions", () => {
   it.effect.each([
     { method: WS_METHODS.serverRunStorageCleanup, scope: AuthSettingsWriteScope },
     { method: WS_METHODS.serverReclaimDatabaseSpace, scope: AuthEnvironmentMaintainScope },
+    { method: WS_METHODS.agentConfigUpsertMcpServer, scope: AuthProvidersManageScope },
+    { method: WS_METHODS.agentConfigRemoveSkill, scope: AuthProvidersManageScope },
+    { method: WS_METHODS.agentConfigSyncMcpServer, scope: AuthProvidersManageScope },
+    { method: WS_METHODS.agentConfigImportPlugin, scope: AuthProvidersManageScope },
+    { method: WS_METHODS.agentConfigSetPluginEnabled, scope: AuthProvidersManageScope },
+    { method: WS_METHODS.agentConfigRemovePlugin, scope: AuthProvidersManageScope },
   ])("requires the destination $scope grant for $method", ({ method, scope }) =>
     Effect.gen(function* () {
       const registry = yield* setup;

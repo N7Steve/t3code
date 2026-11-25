@@ -75,6 +75,24 @@ describe("RPC authorization scopes", () => {
     }
   });
 
+  it("keeps provider CLI config, which holds MCP credentials, behind providers:manage even to read", () => {
+    for (const method of [
+      WS_METHODS.agentConfigList,
+      WS_METHODS.agentConfigUpsertMcpServer,
+      WS_METHODS.agentConfigSetMcpServerEnabled,
+      WS_METHODS.agentConfigRemoveMcpServer,
+      WS_METHODS.agentConfigRepairMcpServer,
+      WS_METHODS.agentConfigSetSkillEnabled,
+      WS_METHODS.agentConfigRemoveSkill,
+      WS_METHODS.agentConfigSyncMcpServer,
+      WS_METHODS.agentConfigImportPlugin,
+      WS_METHODS.agentConfigSetPluginEnabled,
+      WS_METHODS.agentConfigRemovePlugin,
+    ]) {
+      expect(requiredScopeForRpcMethod(method)).toBe(AuthProvidersManageScope);
+    }
+  });
+
   it("lets thread readers observe and refresh checkout branches", () => {
     for (const method of [WS_METHODS.subscribeVcsBranch, WS_METHODS.vcsRefreshBranch]) {
       expect(requiredScopeForRpcMethod(method)).toBe(AuthOrchestrationReadScope);

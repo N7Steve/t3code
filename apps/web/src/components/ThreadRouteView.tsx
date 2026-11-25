@@ -5,7 +5,7 @@ import { visibilityParentKey } from "@t3tools/client-runtime/state/threads";
 import type { ScopedThreadRef } from "@t3tools/contracts";
 import * as Option from "effect/Option";
 import { Navigate, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import ChatView from "./ChatView";
 import { BackgroundThreadContext, HiddenThreadContext } from "./chat/backgroundThread";
@@ -59,6 +59,8 @@ export function ThreadRouteView({
   background?: boolean;
 }) {
   const navigate = useNavigate();
+  const inset = useRef<HTMLElement>(null);
+  const previousChatKey = useRef<string | null>(null);
   const draftId = target.kind === "draft" ? target.draftId : null;
   const draftSession = useComposerDraftStore((store) =>
     draftId === null ? null : store.getDraftSession(draftId),
@@ -224,8 +226,29 @@ export function ThreadRouteView({
     );
   }
 
+  const shownRef = serverThreadRef ?? draftSession ?? draftRedirect;
+  const chatKey = view === null || shownRef === null ? null : scopedThreadKey(shownRef);
+  // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- starts a one-shot DOM animation on chat navigation without remounting the composer
+  useLayoutEffect(() => {
+    if (background || chatKey === null) return;
+    const previous = previousChatKey.current;
+    previousChatKey.current = chatKey;
+    if (
+      previous === null ||
+      previous === chatKey ||
+      matchMedia("(prefers-reduced-motion: reduce)").matches
+    )
+      return;
+
+    const animation = inset.current
+      ?.querySelector("[data-chat-column]")
+      ?.animate([{ opacity: 0.55 }, { opacity: 1 }], { duration: 160, easing: "ease-out" });
+    return () => animation?.cancel();
+  }, [background, chatKey]);
+
   return (
     <SidebarInset
+      ref={inset}
       className="h-svh min-h-0 overflow-hidden overscroll-y-none md:h-dvh"
       inert={background}
     >
